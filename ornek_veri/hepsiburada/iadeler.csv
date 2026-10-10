@@ -1,0 +1,9 @@
+# ÖRNEK VERİ - SENTETİK. Gerçek satıcı, sipariş veya kişi bilgisi içermez. Kolon adları Trendyol/Hepsiburada API alanlarını taklit eder; değerler uydurmadır.
+claimNumber,orderNumber,sku,status,claimDate,reason
+ORNEK-HBC-001,ORNEK-HB-200011,ORNEK-SKU-07,Kabul Edildi,2026-07-15,Vazgeçtim
+ORNEK-HBC-002,ORNEK-HB-200020,ORNEK-SKU-08,Kabul Edildi,2026-09-24,Vazgeçtim
+ORNEK-HBC-003,ORNEK-HB-200022,ORNEK-SKU-01,Kabul Edildi,2026-07-13,Vazgeçtim
+ORNEK-HBC-004,ORNEK-HB-200027,ORNEK-SKU-04,Kabul Edildi,2026-08-24,Vazgeçtim
+ORNEK-HBC-005,ORNEK-HB-200034,ORNEK-SKU-05,Kabul Edildi,2026-08-21,Vazgeçtim
+ORNEK-HBC-006,ORNEK-HB-200038,ORNEK-SKU-02,Kabul Edildi,2026-09-30,Vazgeçtim
+ORNEK-HBC-007,ORNEK-HB-200039,ORNEK-SKU-03,Reddedildi,2026-07-22,Vazgeçtim
