@@ -1,0 +1,19 @@
+# TASLAK - GÖNDERİLMEDİ. ÖRNEK VERİ (sentetik). Gönderim kararı satıcıya aittir.
+
+Konu: Teslim edilen siparişin ödenmeyen hakedişi - 1 kayıt, toplam 386,14 TL düzeltme talebi
+
+Merhaba Hepsiburada Satıcı Destek Ekibi,
+
+ÖRNEK Mağaza Ltd. (sentetik) (Satıcı ID: ORNEK-999000001) olarak Temmuz-Eylül 2026 dönemine ait hakediş ve kesinti kayıtlarımızı kontrol ettik. Aşağıda listelenen 1 kayıtta teslim edilmiş ve vadesi geçmiş siparişlerin hakediş ödemesi yapılmamıştır.
+
+Kayıtlar:
+- Sipariş ORNEK-HB-200008 (ref: ORNEK-HBT-00019): Satış kaydının vadesi 2026-09-05 olmasına rağmen ödeme emri (paymentOrderId) oluşmamış. Ödenmeyen hakediş: 386,14 TL. Talep: 386,14 TL
+
+Toplam talep edilen tutar: 386,14 TL
+
+Talebimiz: ödenmeyen hakedişlerin bir sonraki ödeme döneminde ödenmesi. Sipariş, kargo ve cari hesap ekstresi satırlarını içeren kanıt tablosu ekteki "hepsiburada_odenmeyen_hakedis_kanit.xlsx" dosyasındadır.
+
+Kayıtların incelenmesini ve uygun görülen tutarların bir sonraki hakediş döneminde düzeltme kaydı ile yansıtılmasını rica ederiz.
+
+Saygılarımızla,
+ÖRNEK Mağaza Ltd. (sentetik)

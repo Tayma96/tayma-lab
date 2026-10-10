@@ -1,0 +1,23 @@
+# TASLAK - GÖNDERİLMEDİ. ÖRNEK VERİ (sentetik). Gönderim kararı satıcıya aittir.
+
+Konu: Dayanağı olmayan hizmet / ceza bedeli - 5 kayıt, toplam 450,00 TL düzeltme talebi
+
+Merhaba Trendyol Satıcı Destek Ekibi,
+
+ÖRNEK Mağaza Ltd. (sentetik) (Satıcı ID: ORNEK-999000001) olarak Temmuz-Eylül 2026 dönemine ait hakediş ve kesinti kayıtlarımızı kontrol ettik. Aşağıda listelenen 5 kayıtta kesilen hizmet/ceza bedellerinin dayanağı sipariş kayıtlarıyla örtüşmemektedir (termin içinde kargoya verilen ya da teslim edilen siparişler).
+
+Kayıtlar:
+- Sipariş ORNEK-TY-100087 (ref: ORNEK-OF-00149): 'Tedarik Edememe Bedeli' kesilmiş ancak sipariş durumu 'Teslim edildi'; ürün tedarik edilip gönderilmiş. Talep: 150,00 TL
+- Sipariş ORNEK-TY-100078 (ref: ORNEK-OF-00148): 'Tedarik Edememe Bedeli' kesilmiş ancak sipariş durumu 'Teslim edildi'; ürün tedarik edilip gönderilmiş. Talep: 120,00 TL
+- Sipariş ORNEK-TY-100160 (ref: ORNEK-OF-00142): 'Termin Gecikme Bedeli' kesilmiş ancak sipariş 2026-09-06 tarihinde, termin (2026-09-07) içinde kargoya verilmiş. Talep: 75,00 TL
+- Sipariş ORNEK-TY-100131 (ref: ORNEK-OF-00141): 'Termin Gecikme Bedeli' kesilmiş ancak sipariş 2026-07-27 tarihinde, termin (2026-07-28) içinde kargoya verilmiş. Talep: 60,00 TL
+- Sipariş ORNEK-TY-100140 (ref: ORNEK-OF-00140): 'Termin Gecikme Bedeli' kesilmiş ancak sipariş 2026-07-11 tarihinde, termin (2026-07-12) içinde kargoya verilmiş. Talep: 45,00 TL
+
+Toplam talep edilen tutar: 450,00 TL
+
+Talebimiz: dayanaksız kesilen bedellerin iptali ve iadesi. Sipariş, kargo ve cari hesap ekstresi satırlarını içeren kanıt tablosu ekteki "trendyol_dayanaksiz_kesinti_kanit.xlsx" dosyasındadır.
+[SATICI EKLEMELİ: Kargo teslim fişi / takip ekranı görüntüsü eklenebilir.]
+Kayıtların incelenmesini ve uygun görülen tutarların bir sonraki hakediş döneminde düzeltme kaydı ile yansıtılmasını rica ederiz.
+
+Saygılarımızla,
+ÖRNEK Mağaza Ltd. (sentetik)

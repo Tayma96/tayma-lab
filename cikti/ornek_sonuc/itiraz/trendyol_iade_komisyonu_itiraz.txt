@@ -1,0 +1,30 @@
+# TASLAK - GÖNDERİLMEDİ. ÖRNEK VERİ (sentetik). Gönderim kararı satıcıya aittir.
+
+Konu: İadede geri verilmeyen komisyon - 12 kayıt, toplam 1.384,83 TL düzeltme talebi
+
+Merhaba Trendyol Satıcı Destek Ekibi,
+
+ÖRNEK Mağaza Ltd. (sentetik) (Satıcı ID: ORNEK-999000001) olarak Temmuz-Eylül 2026 dönemine ait hakediş ve kesinti kayıtlarımızı kontrol ettik. Aşağıda listelenen 12 kayıtta müşteri iadesi kabul edilerek satış bedeli hakedişimizden düşüldüğü halde, satış sırasında kesilen komisyonun iadesi yapılmamış ya da eksik yapılmıştır.
+
+Kayıtlar:
+- Sipariş ORNEK-TY-100029 (ref: ORNEK-TRX-900119): Satışta 284,81 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 284,81 TL. Talep: 284,81 TL
+- Sipariş ORNEK-TY-100040 (ref: ORNEK-TRX-900123): Satışta 284,81 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 284,81 TL. Talep: 284,81 TL
+- Sipariş ORNEK-TY-100069 (ref: ORNEK-TRX-900129): Satışta 208,81 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 208,81 TL. Talep: 208,81 TL
+- Sipariş ORNEK-TY-100053 (ref: ORNEK-TRX-900125): Satışta 149,90 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 149,90 TL. Talep: 149,90 TL
+- Sipariş ORNEK-TY-100086 (ref: ORNEK-TRX-900137): Satışta 119,85 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 119,85 TL. Talep: 119,85 TL
+- Sipariş ORNEK-TY-100113 (ref: ORNEK-TRX-900145): Satışta 96,58 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 96,58 TL. Talep: 96,58 TL
+- Sipariş ORNEK-TY-100111 (ref: ORNEK-TRX-900143): Satışta 73,29 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 73,29 TL. Talep: 73,29 TL
+- Sipariş ORNEK-TY-100084 (ref: ORNEK-TRX-900135): Satışta 41,88 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 41,88 TL. Talep: 41,88 TL
+- Sipariş ORNEK-TY-100008 (ref: ORNEK-TRX-900115): Satışta 35,98 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 35,98 TL. Talep: 35,98 TL
+- Sipariş ORNEK-TY-100118 (ref: ORNEK-TRX-900147): Satışta 35,98 TL komisyon kesilmiş; iade kaydında yalnızca 0,00 TL komisyon iadesi var. Eksik: 35,98 TL. Talep: 35,98 TL
+- Sipariş ORNEK-TY-100030 (ref: ORNEK-TRX-900121): Satışta 59,90 TL komisyon kesilmiş; iade kaydında yalnızca 29,95 TL komisyon iadesi var. Eksik: 29,95 TL. Talep: 29,95 TL
+- Sipariş ORNEK-TY-100068 (ref: ORNEK-TRX-900127): Satışta 45,99 TL komisyon kesilmiş; iade kaydında yalnızca 23,00 TL komisyon iadesi var. Eksik: 22,99 TL. Talep: 22,99 TL
+
+Toplam talep edilen tutar: 1.384,83 TL
+
+Talebimiz: eksik komisyon iadesinin düzeltme kaydı ile hakedişimize yansıtılması. Sipariş, kargo ve cari hesap ekstresi satırlarını içeren kanıt tablosu ekteki "trendyol_iade_komisyonu_kanit.xlsx" dosyasındadır.
+
+Kayıtların incelenmesini ve uygun görülen tutarların bir sonraki hakediş döneminde düzeltme kaydı ile yansıtılmasını rica ederiz.
+
+Saygılarımızla,
+ÖRNEK Mağaza Ltd. (sentetik)

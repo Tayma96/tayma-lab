@@ -1,0 +1,36 @@
+# TASLAK - GÖNDERİLMEDİ. ÖRNEK VERİ (sentetik). Gönderim kararı satıcıya aittir.
+
+Konu: Hatalı (fazla) desi ile kesilen kargo - 18 kayıt, toplam 464,50 TL düzeltme talebi
+
+Merhaba Trendyol Satıcı Destek Ekibi,
+
+ÖRNEK Mağaza Ltd. (sentetik) (Satıcı ID: ORNEK-999000001) olarak Temmuz-Eylül 2026 dönemine ait hakediş ve kesinti kayıtlarımızı kontrol ettik. Aşağıda listelenen 18 kayıtta kargo faturasında, ürünlerin sistemde kayıtlı desi değerlerinden daha yüksek desi üzerinden ücretlendirme yapılmıştır.
+
+Kayıtlar:
+- Sipariş ORNEK-TY-100025 (ref: ORNEK-TKP-500025): Gönderi kargosu 11 desi üzerinden 135,50 TL faturalanmış; ürün kaydına göre paket 6 desi (tarife: 95,00 TL). Fark: 40,50 TL. Talep: 40,50 TL
+- Sipariş ORNEK-TY-100027 (ref: ORNEK-TKP-500027): Gönderi kargosu 8 desi üzerinden 111,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 37,00 TL. Talep: 37,00 TL
+- Sipariş ORNEK-TY-100048 (ref: ORNEK-TKP-500048): Gönderi kargosu 8 desi üzerinden 111,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 37,00 TL. Talep: 37,00 TL
+- Sipariş ORNEK-TY-100071 (ref: ORNEK-TKP-500071): Gönderi kargosu 7 desi üzerinden 103,00 TL faturalanmış; ürün kaydına göre paket 2 desi (tarife: 68,50 TL). Fark: 34,50 TL. Talep: 34,50 TL
+- Sipariş ORNEK-TY-100052 (ref: ORNEK-TKP-500052): Gönderi kargosu 6 desi üzerinden 95,00 TL faturalanmış; ürün kaydına göre paket 1 desi (tarife: 62,00 TL). Fark: 33,00 TL. Talep: 33,00 TL
+- Sipariş ORNEK-TY-100039 (ref: ORNEK-TKP-500039): Gönderi kargosu 7 desi üzerinden 103,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 29,00 TL. Talep: 29,00 TL
+- Sipariş ORNEK-TY-100109 (ref: ORNEK-TKP-500109): Gönderi kargosu 7 desi üzerinden 103,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 29,00 TL. Talep: 29,00 TL
+- Sipariş ORNEK-TY-100152 (ref: ORNEK-TKP-500152): Gönderi kargosu 7 desi üzerinden 103,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 29,00 TL. Talep: 29,00 TL
+- Sipariş ORNEK-TY-100126 (ref: ORNEK-TKP-500126): Gönderi kargosu 6 desi üzerinden 95,00 TL faturalanmış; ürün kaydına göre paket 2 desi (tarife: 68,50 TL). Fark: 26,50 TL. Talep: 26,50 TL
+- Sipariş ORNEK-TY-100081 (ref: ORNEK-TKP-500081): Gönderi kargosu 5 desi üzerinden 87,00 TL faturalanmış; ürün kaydına göre paket 1 desi (tarife: 62,00 TL). Fark: 25,00 TL. Talep: 25,00 TL
+- Sipariş ORNEK-TY-100099 (ref: ORNEK-TKP-500099): Gönderi kargosu 9 desi üzerinden 119,00 TL faturalanmış; ürün kaydına göre paket 6 desi (tarife: 95,00 TL). Fark: 24,00 TL. Talep: 24,00 TL
+- Sipariş ORNEK-TY-100089 (ref: ORNEK-TKP-500089-I): İade kargosu 6 desi üzerinden 95,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 21,00 TL. Talep: 21,00 TL
+- Sipariş ORNEK-TY-100072 (ref: ORNEK-TKP-500072-I): İade kargosu 5 desi üzerinden 87,00 TL faturalanmış; ürün kaydına göre paket 2 desi (tarife: 68,50 TL). Fark: 18,50 TL. Talep: 18,50 TL
+- Sipariş ORNEK-TY-100091 (ref: ORNEK-TKP-500091-I): İade kargosu 5 desi üzerinden 87,00 TL faturalanmış; ürün kaydına göre paket 2 desi (tarife: 68,50 TL). Fark: 18,50 TL. Talep: 18,50 TL
+- Sipariş ORNEK-TY-100093 (ref: ORNEK-TKP-500093): Gönderi kargosu 4 desi üzerinden 80,50 TL faturalanmış; ürün kaydına göre paket 1 desi (tarife: 62,00 TL). Fark: 18,50 TL. Talep: 18,50 TL
+- Sipariş ORNEK-TY-100108 (ref: ORNEK-TKP-500108): Gönderi kargosu 5 desi üzerinden 87,00 TL faturalanmış; ürün kaydına göre paket 2 desi (tarife: 68,50 TL). Fark: 18,50 TL. Talep: 18,50 TL
+- Sipariş ORNEK-TY-100090 (ref: ORNEK-TKP-500090): Gönderi kargosu 5 desi üzerinden 87,00 TL faturalanmış; ürün kaydına göre paket 3 desi (tarife: 74,00 TL). Fark: 13,00 TL. Talep: 13,00 TL
+- Sipariş ORNEK-TY-100114 (ref: ORNEK-TKP-500114): Gönderi kargosu 3 desi üzerinden 74,00 TL faturalanmış; ürün kaydına göre paket 1 desi (tarife: 62,00 TL). Fark: 12,00 TL. Talep: 12,00 TL
+
+Toplam talep edilen tutar: 464,50 TL
+
+Talebimiz: kargo bedellerinin ürünlerin kayıtlı desi değerine göre yeniden hesaplanması ve farkın iadesi. Sipariş, kargo ve cari hesap ekstresi satırlarını içeren kanıt tablosu ekteki "trendyol_desi_farki_kanit.xlsx" dosyasındadır.
+[SATICI EKLEMELİ: Mümkünse paketlenmiş ürünün ölçü/tartı fotoğrafı ve kargo fişi eklenmelidir.]
+Kayıtların incelenmesini ve uygun görülen tutarların bir sonraki hakediş döneminde düzeltme kaydı ile yansıtılmasını rica ederiz.
+
+Saygılarımızla,
+ÖRNEK Mağaza Ltd. (sentetik)

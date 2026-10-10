@@ -1,0 +1,2036 @@
+[
+  {
+    "vaka_id": "HB-IKO-0001",
+    "platform": "hepsiburada",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-HB-200020",
+    "talep_tutari": 233.82,
+    "durum": "kabul",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "VARSAYIMSAL: kabul edildi, düzeltme henüz yansımadı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "HB-IKO-0002",
+    "platform": "hepsiburada",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-HB-200034",
+    "talep_tutari": 90.86,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 90.86,
+    "tahsil_referanslari": [
+      "KOMISYON_DUZELTME:ORNEK-HBT-D0001"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "90.86 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "HB-IKO-0003",
+    "platform": "hepsiburada",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-HB-200038",
+    "talep_tutari": 44.64,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 44.64,
+    "tahsil_referanslari": [
+      "KOMISYON_DUZELTME:ORNEK-HBT-D0002"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "44.64 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "HB-ODH-0001",
+    "platform": "hepsiburada",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-HB-200008",
+    "talep_tutari": 386.14,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 386.14,
+    "tahsil_referanslari": [
+      "HAKEDIS_DUZELTME:ORNEK-HBT-D0003"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "386.14 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0001",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100025",
+    "talep_tutari": 40.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 20.25,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0004"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "20.25 TL hakedişe yansıdı (kısmi)"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0002",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100027",
+    "talep_tutari": 37.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0003",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100048",
+    "talep_tutari": 37.0,
+    "durum": "red",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "red",
+        "not": "VARSAYIMSAL: pazaryeri talebi reddetti"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0004",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100071",
+    "talep_tutari": 34.5,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0005",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100052",
+    "talep_tutari": 33.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 33.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0008"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "33.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0006",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100039",
+    "talep_tutari": 29.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0007",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100109",
+    "talep_tutari": 29.0,
+    "durum": "red",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "red",
+        "not": "VARSAYIMSAL: pazaryeri talebi reddetti"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0008",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100152",
+    "talep_tutari": 29.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0009",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100126",
+    "talep_tutari": 26.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 26.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0012"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "26.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0010",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100081",
+    "talep_tutari": 25.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 25.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0013"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "25.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0011",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100099",
+    "talep_tutari": 24.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 24.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0014"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "24.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0012",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100089",
+    "talep_tutari": 21.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0013",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100072",
+    "talep_tutari": 18.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 18.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0016"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "18.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0014",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100091",
+    "talep_tutari": 18.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 18.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0017"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "18.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0015",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100093",
+    "talep_tutari": 18.5,
+    "durum": "red",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "red",
+        "not": "VARSAYIMSAL: pazaryeri talebi reddetti"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0016",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100108",
+    "talep_tutari": 18.5,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0017",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100090",
+    "talep_tutari": 13.0,
+    "durum": "red",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "red",
+        "not": "VARSAYIMSAL: pazaryeri talebi reddetti"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DES-0018",
+    "platform": "trendyol",
+    "kural": "desi_farki",
+    "siparis_no": "ORNEK-TY-100114",
+    "talep_tutari": 12.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 12.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0021"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "12.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DYK-0001",
+    "platform": "trendyol",
+    "kural": "dayanaksiz_kesinti",
+    "siparis_no": "ORNEK-TY-100087",
+    "talep_tutari": 150.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 150.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0022"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "150.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DYK-0002",
+    "platform": "trendyol",
+    "kural": "dayanaksiz_kesinti",
+    "siparis_no": "ORNEK-TY-100078",
+    "talep_tutari": 120.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 120.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0023"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "120.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DYK-0004",
+    "platform": "trendyol",
+    "kural": "dayanaksiz_kesinti",
+    "siparis_no": "ORNEK-TY-100160",
+    "talep_tutari": 75.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 75.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0024"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "75.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DYK-0005",
+    "platform": "trendyol",
+    "kural": "dayanaksiz_kesinti",
+    "siparis_no": "ORNEK-TY-100131",
+    "talep_tutari": 60.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-DYK-0006",
+    "platform": "trendyol",
+    "kural": "dayanaksiz_kesinti",
+    "siparis_no": "ORNEK-TY-100140",
+    "talep_tutari": 45.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 45.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0026"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "45.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0001",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100029",
+    "talep_tutari": 284.81,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 284.81,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0027"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "284.81 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0002",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100040",
+    "talep_tutari": 284.81,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 284.81,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0028"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "284.81 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0003",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100069",
+    "talep_tutari": 208.81,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 208.81,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0029"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "208.81 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0004",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100053",
+    "talep_tutari": 149.9,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 149.9,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0030"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "149.90 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0005",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100086",
+    "talep_tutari": 119.85,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 119.85,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0031"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "119.85 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0006",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100113",
+    "talep_tutari": 96.58,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 96.58,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0032"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "96.58 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0007",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100111",
+    "talep_tutari": 73.29,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 73.29,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0033"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "73.29 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0008",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100084",
+    "talep_tutari": 41.88,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 41.88,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0034"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "41.88 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0009",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100008",
+    "talep_tutari": 35.98,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 35.98,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0035"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "35.98 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0010",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100118",
+    "talep_tutari": 35.98,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 35.98,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0036"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "35.98 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0011",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100030",
+    "talep_tutari": 29.95,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 29.95,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0037"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "29.95 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IKO-0012",
+    "platform": "trendyol",
+    "kural": "iade_komisyonu",
+    "siparis_no": "ORNEK-TY-100068",
+    "talep_tutari": 22.99,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 22.99,
+    "tahsil_referanslari": [
+      "CommissionNegative:ORNEK-TRX-D0038"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "22.99 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0001",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100003",
+    "talep_tutari": 74.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 74.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0039"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "74.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0002",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100018",
+    "talep_tutari": 74.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 74.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0040"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "74.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0003",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100057",
+    "talep_tutari": 74.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 74.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0041"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "74.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0004",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100102",
+    "talep_tutari": 74.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 74.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0042"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "74.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0005",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100144",
+    "talep_tutari": 74.0,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0007",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100063",
+    "talep_tutari": 68.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 68.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0044"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "68.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-IPK-0008",
+    "platform": "trendyol",
+    "kural": "iptal_kargo",
+    "siparis_no": "ORNEK-TY-100153",
+    "talep_tutari": 68.5,
+    "durum": "itiraz_edildi",
+    "tahsil_tutari": 0.0,
+    "tahsil_referanslari": [],
+    "faturalandi": false,
+    "fatura_no": null,
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-MUK-0001",
+    "platform": "trendyol",
+    "kural": "mukerrer_kesinti",
+    "siparis_no": "ORNEK-TY-100017",
+    "talep_tutari": 74.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 74.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0046"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "74.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-MUK-0002",
+    "platform": "trendyol",
+    "kural": "mukerrer_kesinti",
+    "siparis_no": "ORNEK-TY-100119",
+    "talep_tutari": 68.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 68.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0047"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "68.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-MUK-0003",
+    "platform": "trendyol",
+    "kural": "mukerrer_kesinti",
+    "siparis_no": "ORNEK-TY-100138",
+    "talep_tutari": 68.5,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 68.5,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0048"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "68.50 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-MUK-0004",
+    "platform": "trendyol",
+    "kural": "mukerrer_kesinti",
+    "siparis_no": "ORNEK-TY-100128",
+    "talep_tutari": 62.0,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 62.0,
+    "tahsil_referanslari": [
+      "FinancialItem:ORNEK-OF-D0049"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "62.00 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-ODH-0001",
+    "platform": "trendyol",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-TY-100058",
+    "talep_tutari": 1908.17,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 1908.17,
+    "tahsil_referanslari": [
+      "SellerRevenuePositive:ORNEK-TRX-D0050"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "1908.17 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-ODH-0002",
+    "platform": "trendyol",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-TY-100148",
+    "talep_tutari": 1862.19,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 1862.19,
+    "tahsil_referanslari": [
+      "SellerRevenuePositive:ORNEK-TRX-D0051"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "1862.19 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-ODH-0003",
+    "platform": "trendyol",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-TY-100045",
+    "talep_tutari": 275.71,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 275.71,
+    "tahsil_referanslari": [
+      "SellerRevenuePositive:ORNEK-TRX-D0052"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "275.71 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-ODH-0004",
+    "platform": "trendyol",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-TY-100001",
+    "talep_tutari": 203.92,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 203.92,
+    "tahsil_referanslari": [
+      "SellerRevenuePositive:ORNEK-TRX-D0053"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "203.92 TL hakedişe yansıdı"
+      }
+    ]
+  },
+  {
+    "vaka_id": "TY-ODH-0005",
+    "platform": "trendyol",
+    "kural": "odenmeyen_hakedis",
+    "siparis_no": "ORNEK-TY-100116",
+    "talep_tutari": 134.91,
+    "durum": "tahsil_edildi",
+    "tahsil_tutari": 134.91,
+    "tahsil_referanslari": [
+      "SellerRevenuePositive:ORNEK-TRX-D0054"
+    ],
+    "faturalandi": true,
+    "fatura_no": "TASLAK-2026-0001",
+    "tarihce": [
+      {
+        "tarih": "2026-10-10",
+        "eski": null,
+        "yeni": "acik",
+        "not": "tarama ile oluşturuldu"
+      },
+      {
+        "tarih": "2026-10-12",
+        "eski": "acik",
+        "yeni": "itiraz_edildi",
+        "not": "SİMÜLASYON: satıcı tarafından panelden gönderildi varsayımı"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "itiraz_edildi",
+        "yeni": "kabul",
+        "not": "düzeltme kaydı tespit edildi"
+      },
+      {
+        "tarih": "2026-11-04",
+        "eski": "kabul",
+        "yeni": "tahsil_edildi",
+        "not": "134.91 TL hakedişe yansıdı"
+      }
+    ]
+  }
+]
