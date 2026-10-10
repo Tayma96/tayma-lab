@@ -1,0 +1,164 @@
+# hakedis - yapılandırma
+# ---------------------------------------------------------------------------
+# ÖNEMLİ: Bu dosyadaki pazaryeri politikası varsayımları ve tutarlar
+# "doğrulanmalı" olarak işaretlenmiştir. Gerçek satıcı verisiyle çalışmadan
+# önce her biri satıcının sözleşmesi / satıcı paneli / pazaryeri desteği ile
+# teyit edilmelidir. Kaynaklar: docs/KAYNAKLAR.md
+# ---------------------------------------------------------------------------
+
+genel:
+  # Analizin yapıldığı gün (vade/ödeme kontrolleri bu tarihe göre yapılır).
+  # null bırakılırsa bugünün tarihi kullanılır.
+  analiz_tarihi: "2026-10-10"
+  para_birimi: TL
+
+# --- Puanlama ve itiraz eşikleri (öneri; bkz. docs/GELIR_MODELI.md) ---------
+esikler:
+  min_bulgu_tutari_tl: 10.0      # Bunun altındaki tekil bulgular dosyalanmaz (esik_alti)
+  min_guven: 0.5                 # Güven puanı bunun altındaysa "incelenmeli" olur, dosyalanmaz
+  min_paket_tutari_tl: 250.0     # Aynı platform+kategori paketi bu tutarın altındaysa sonraki döneme devreder
+  min_donem_tutari_tl: 500.0     # Satıcının dönem toplamı bunun altındaysa itiraz yürütülmez (ücretsiz rapor verilir)
+
+# Kural bazlı güven puanları (0-1). TAHMİNDİR; gerçek itiraz sonuçlarıyla kalibre edilmelidir.
+guven:
+  iade_komisyonu: 0.90
+  desi_farki_gonderi: 0.60
+  desi_farki_iade: 0.50
+  iptal_kargo_iptal: 0.85
+  iptal_kargo_teslim_edilemedi: 0.40
+  mukerrer_kesinti: 0.90
+  dayanaksiz_termin: 0.70
+  dayanaksiz_tedarik: 0.85
+  dayanaksiz_bilinmeyen: 0.30
+  odenmeyen_hakedis_odeme_yok: 0.80
+  odenmeyen_hakedis_kayit_yok: 0.60
+
+kurallar:
+  iade_komisyonu:
+    aktif: true
+    # doğrulanmalı: Trendyol cari hesap ekstresi dokümanında "Return" kaydında
+    # commissionAmount (+) ve sellerRevenue (-) olarak gösteriliyor, yani iadede
+    # komisyonun ters kayıtla geri verilmesi bekleniyor. Satıcı sözleşmesiyle teyit edin.
+    iadede_komisyon_iade_edilir: true
+    tolerans_tl: 0.05
+
+  desi_farki:
+    aktif: true
+    # doğrulanmalı: pazaryerinin/kargonun kabul ettiği desi toleransı bilinmiyor.
+    # Faturalanan desi > yukarı yuvarlanmış ürün desisi + tolerans ise bulgu üretilir.
+    tolerans_desi: 0
+    iade_kargolarini_kontrol_et: true
+
+  iptal_kargo:
+    aktif: true
+    # Bu durumdaki siparişlere gönderi kargo bedeli kesilmesi beklenmez (doğrulanmalı)
+    kargo_kesilmemesi_gereken_durumlar: [IPTAL, TEDARIK_EDILEMEDI]
+    # Teslim edilemeyen siparişlerde kargo bedelinin kime ait olduğu belirsiz -> düşük güven
+    incelenecek_durumlar: [TESLIM_EDILEMEDI]
+
+  mukerrer_kesinti:
+    aktif: true
+    # Sipariş başına en fazla bir kez kesilmesi beklenen kesinti tipleri (doğrulanmalı)
+    siparis_basina_tekil_kesintiler:
+      - Platform Hizmet Bedeli
+      - Termin Gecikme Bedeli
+      - Tedarik Edememe Bedeli
+
+  dayanaksiz_kesinti:
+    aktif: true
+    # Kesinti tipi adları ÖRNEKTİR; gerçek rapordaki açıklama metinleriyle eşleştirilmelidir (doğrulanmalı)
+    termin_cezasi_tipleri: [Termin Gecikme Bedeli]
+    tedarik_cezasi_tipleri: [Tedarik Edememe Bedeli]
+    bilinen_kesinti_tipleri:
+      - Platform Hizmet Bedeli
+      - Termin Gecikme Bedeli
+      - Tedarik Edememe Bedeli
+      - Reklam Bedeli
+
+  odenmeyen_hakedis:
+    aktif: true
+    # Teslimattan sonra finansal kaydın oluşması için beklenecek gün (doğrulanmalı)
+    kayit_olusma_tolerans_gun: 10
+    # Vade (paymentDate) geçtikten sonra ödeme emri için beklenecek gün
+    odeme_tolerans_gun: 7
+    # Satış kaydı hiç yoksa hakedişi tahmin etmek için varsayılan komisyon oranı
+    varsayilan_komisyon_orani: 0.18
+
+# Çakışma önleme: aynı kaynak satırı birden fazla kural talep ederse
+# listede önce gelen kural kazanır (çifte sayım engellenir).
+kural_onceligi:
+  - iptal_kargo
+  - mukerrer_kesinti
+  - desi_farki
+  - iade_komisyonu
+  - dayanaksiz_kesinti
+  - odenmeyen_hakedis
+
+# --- Kargo tarifesi (desi -> TL, KDV dahil) -----------------------------------
+# ÖRNEK DEĞERLERDİR, GERÇEK TARİFE DEĞİLDİR. Satıcının anlaşmalı kargo tarifesi
+# ile değiştirilmelidir (doğrulanmalı). 10 desi üstü: son değer + her desi için artis.
+kargo_tarifesi:
+  varsayilan:
+    tablo: {1: 62.0, 2: 68.5, 3: 74.0, 4: 80.5, 5: 87.0, 6: 95.0, 7: 103.0, 8: 111.0, 9: 119.0, 10: 127.0}
+    ust_desi_artis: 8.5
+
+# --- Kurtarılan tutarın sonraki hakedişte tespiti -------------------------------
+# Hangi kayıt tipleri hangi kural için "geri ödeme" sayılır (doğrulanmalı).
+tahsilat:
+  eslestirme:
+    iade_komisyonu: [CommissionNegative, SellerRevenuePositive, KOMISYON_DUZELTME]
+    desi_farki: [FinancialItem, KARGO_DUZELTME]
+    iptal_kargo: [FinancialItem, KARGO_DUZELTME]
+    mukerrer_kesinti: [FinancialItem, KARGO_DUZELTME, KESINTI_DUZELTME]
+    dayanaksiz_kesinti: [FinancialItem, KESINTI_DUZELTME]
+    odenmeyen_hakedis: [SellerRevenuePositive, HAKEDIS_DUZELTME]
+
+# --- Ücretlendirme (bkz. docs/GELIR_MODELI.md) --------------------------------
+ucret:
+  standart_oran: 0.25
+  hacim_orani: 0.20
+  # Takvim ayı içinde tahsil edilen tutarın bu eşiği aşan kısmına hacim_orani uygulanır (kademeli)
+  hacim_esigi_tl: 50000.0
+  # Kural bazlı özel oranlar (kademeye girmez). Ödenmeyen hakediş çoğu zaman "kayıp" değil
+  # "gecikme" olduğu için düşük oran önerilir (bkz. docs/GELIR_MODELI.md).
+  kural_oranlari:
+    odenmeyen_hakedis: 0.10
+  kdv_orani: 0.20     # doğrulanmalı (hizmet faturası KDV oranı mali müşavirle teyit edilmeli)
+  odeme_yontemi: "kayitli_kart (iyzico / PayTR) - SIMULASYON: gerçek çekim yapılmaz"
+
+# --- Excel fallback: panel raporu başlıkları -> API alan adları ----------------
+# Panel Excel başlıkları ÖRNEKTİR (doğrulanmalı). Gerçek indirilen raporla güncelleyin.
+kolon_eslemesi:
+  trendyol_siparis_excel:
+    "Sipariş Numarası": orderNumber
+    "Paket No": shipmentPackageId
+    "Barkod": barcode
+    "Ürün Adı": productName
+    "Adet": quantity
+    "Sipariş Tarihi": orderDate
+    "Termin Tarihi": agreedDeliveryDate
+    "Kargoya Veriliş Tarihi": shippedDate
+    "Teslim Tarihi": deliveredDate
+    "Sipariş Statüsü": status
+    "Faturalanacak Tutar": amount
+    "Komisyon Oranı": commissionRate
+
+# --- Hepsiburada işlem tipi eşlemesi (ÖRNEK, doğrulanmalı) ----------------------
+hepsiburada:
+  islem_tipi_eslemesi:
+    "Satış": SATIS
+    "Komisyon": KOMISYON
+    "İade": IADE
+    "Komisyon İadesi": KOMISYON_IADE
+    "Kargo Bedeli": KARGO_GONDERI
+    "İade Kargo Bedeli": KARGO_IADE
+    "Hizmet Bedeli": KESINTI
+    "Ceza": KESINTI
+    "Düzeltme - Komisyon": KOMISYON_DUZELTME
+    "Düzeltme - Kargo": KARGO_DUZELTME
+    "Düzeltme - Kesinti": KESINTI_DUZELTME
+    "Düzeltme - Hakediş": HAKEDIS_DUZELTME
+
+# LLM ile itiraz metni iyileştirme (varsayılan KAPALI; açılsa bile bu iskelette çağrı yapılmaz)
+llm:
+  aktif: false
