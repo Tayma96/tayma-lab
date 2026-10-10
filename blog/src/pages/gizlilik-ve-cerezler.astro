@@ -1,0 +1,37 @@
+---
+import Page from '../layouts/Page.astro';
+import { cfg } from '../lib/site';
+const contact = cfg.contactEmail || '[İLETİŞİM E-POSTASI EKLENMELİ]';
+---
+<Page title="Gizlilik, KVKK Aydınlatma Metni ve Çerez Politikası" description="Kişisel verilerin işlenmesi, KVKK kapsamındaki haklarınız ve çerez kullanımı." path="gizlilik-ve-cerezler/" needsReview>
+  <h2>1. Veri sorumlusu</h2>
+  <p>6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında veri sorumlusu: <strong>[AD SOYAD / ŞİRKET UNVANI, ADRES — DOLDURULMALI]</strong>. İletişim: {contact}.</p>
+
+  <h2>2. Hangi verileri işliyoruz?</h2>
+  <p>Site statik olarak barındırılır (GitHub Pages) ve üyelik, yorum veya form içermez. Bununla birlikte:</p>
+  <ul>
+    <li><strong>Barındırma sağlayıcısı kayıtları:</strong> Siteyi ziyaret ettiğinizde barındırma sağlayıcısı (GitHub, Inc.) güvenlik ve işletim amacıyla IP adresi gibi teknik verileri işleyebilir. Ayrıntı için GitHub Gizlilik Bildirimi'ne bakınız.</li>
+    <li><strong>Tarayıcı depolaması:</strong> Çerez bildirimini kapattığınızı hatırlamak için tarayıcınızda <code>sr_cookie_ok</code> adlı bir yerel depolama kaydı tutulur.</li>
+    <li><strong>Reklam ve analitik (etkinleştirilirse):</strong> Google AdSense veya benzeri reklam/analitik hizmetleri etkinleştirildiğinde bu hizmetler çerez ve benzeri teknolojilerle cihaz tanımlayıcıları, IP adresi ve kullanım verilerini işleyebilir. Şu anda bu hizmetler <em>etkin değildir</em>.</li>
+    <li><strong>E-posta:</strong> Bize e-posta gönderirseniz ad ve e-posta adresiniz yalnızca yanıt vermek amacıyla işlenir.</li>
+  </ul>
+
+  <h2>3. İşleme amaçları ve hukuki sebepler</h2>
+  <p>Veriler; sitenin güvenli işletilmesi (KVKK m.5/2-f meşru menfaat), iletişim taleplerinin yanıtlanması (m.5/2-c/f) ve — etkinleştirilirse — kişiselleştirilmiş reklam/analitik için <strong>açık rızanız</strong> (m.5/1) hukuki sebeplerine dayanılarak işlenir.</p>
+
+  <h2>4. Yurt dışına aktarım</h2>
+  <p>Barındırma ve olası reklam/analitik sağlayıcıları yurt dışında bulunduğundan veriler yurt dışına aktarılabilir. KVKK m.9 (2024 değişiklikleriyle) kapsamındaki şartların ve gerekiyorsa standart sözleşme bildirimlerinin uzman tarafından değerlendirilmesi gerekir.</p>
+
+  <h2>5. Haklarınız (KVKK m.11)</h2>
+  <p>Kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini veya silinmesini isteme, itiraz etme ve zararın giderilmesini talep etme haklarına sahipsiniz. Başvurularınızı {contact} adresine iletebilirsiniz.</p>
+
+  <h2>6. Çerez politikası</h2>
+  <ul>
+    <li><strong>Zorunlu:</strong> Sitenin çalışması için gereken yerel depolama (çerez bildirimi tercihi).</li>
+    <li><strong>Reklam/analitik (şu an kapalı):</strong> Etkinleştirildiğinde, Kişisel Verileri Koruma Kurumu'nun Çerez Uygulamaları Hakkında Rehberi doğrultusunda zorunlu olmayan çerezler için önceden açık rıza alınacak bir onay mekanizması eklenmelidir.</li>
+  </ul>
+  <p>Tarayıcı ayarlarınızdan çerezleri ve yerel depolamayı silebilir veya engelleyebilirsiniz.</p>
+
+  <h2>7. Değişiklikler</h2>
+  <p>Bu metin güncellenebilir. Son güncelleme: <strong>[TARİH — DOLDURULMALI]</strong>.</p>
+</Page>

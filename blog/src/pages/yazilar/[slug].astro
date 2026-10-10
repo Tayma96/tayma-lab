@@ -1,0 +1,83 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import AffiliateBox from '../../components/AffiliateBox.astro';
+import Disclaimer from '../../components/Disclaimer.astro';
+import { cfg, url, absUrl, formatDate, slugify } from '../../lib/site';
+import { getPublishedPosts, relatedPosts, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post, all: posts } }));
+}
+const { post, all } = Astro.props as { post: Post; all: Post[] };
+const { Content, headings } = await render(post);
+const d = post.data;
+const path = `yazilar/${post.id}/`;
+const related = relatedPosts(post, all);
+const toc = headings.filter((h) => h.depth === 2);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: d.title,
+    description: d.description,
+    datePublished: d.date.toISOString(),
+    dateModified: (d.updated ?? d.date).toISOString(),
+    inLanguage: 'tr-TR',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absUrl(path) },
+    author: { '@type': 'Organization', name: cfg.siteName, url: absUrl() },
+    publisher: { '@type': 'Organization', name: cfg.siteName, url: absUrl() },
+    image: absUrl('og-default.png'),
+    articleSection: d.category,
+    keywords: d.tags.join(', '),
+    citation: d.sources.map((s) => s.url),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: cfg.siteName, item: absUrl() },
+      { '@type': 'ListItem', position: 2, name: d.category, item: absUrl(`kategori/${slugify(d.category)}/`) },
+      { '@type': 'ListItem', position: 3, name: d.title, item: absUrl(path) },
+    ],
+  },
+];
+---
+<Base title={d.title} description={d.description} path={path} type="article" jsonLd={jsonLd}
+  publishedTime={d.date.toISOString()} modifiedTime={(d.updated ?? d.date).toISOString()}>
+  <article class="post">
+    <nav class="crumbs" aria-label="Konum"><a href={url()}>Ana sayfa</a> › <a href={url(`kategori/${slugify(d.category)}/`)}>{d.category}</a></nav>
+    <h1>{d.title}</h1>
+    <p class="meta">
+      <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+      {d.updated && <> · Güncelleme: <time datetime={d.updated.toISOString()}>{formatDate(d.updated)}</time></>}
+      {d.aiGenerated && <> · <span class="ai">Yapay zekâ desteğiyle hazırlandı</span></>}
+    </p>
+    <Disclaimer />
+    <AdSlot name="postTop" />
+    {toc.length > 2 && (
+      <details class="toc" open>
+        <summary>İçindekiler</summary>
+        <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+      </details>
+    )}
+    <div class="prose"><Content /></div>
+    {d.sources.length > 0 && (
+      <section class="sources">
+        <h2>Kaynaklar</h2>
+        <ol>{d.sources.map((s) => <li><a href={s.url} rel="noopener" target="_blank">{s.title}</a></li>)}</ol>
+      </section>
+    )}
+    {d.tags.length > 0 && <p class="tags">{d.tags.map((t) => <span class="tag">#{t}</span>)}</p>}
+    <AffiliateBox />
+    <AdSlot name="postBottom" />
+    {related.length > 0 && (
+      <section class="related">
+        <h2>İlgili rehberler</h2>
+        <ul>{related.map((r) => <li><a href={url(`yazilar/${r.id}/`)}>{r.data.title}</a></li>)}</ul>
+      </section>
+    )}
+  </article>
+</Base>

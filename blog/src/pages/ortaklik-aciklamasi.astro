@@ -1,0 +1,15 @@
+---
+import Page from '../layouts/Page.astro';
+import { cfg, url } from '../lib/site';
+---
+<Page title="Ortaklık (Affiliate) ve Reklam Açıklaması" description="Satıcı Rehberi'nin ortaklık bağlantıları ve reklam politikası." path="ortaklik-aciklamasi/" needsReview>
+  <p>{cfg.siteName} içeriklerinde zaman zaman <strong>ortaklık (affiliate) bağlantıları</strong> bulunabilir. Bu bağlantılar üzerinden bir ürün ya da hizmet satın alırsanız, sizin için ek bir maliyet oluşmadan sitemiz bir komisyon kazanabilir.</p>
+  <ul>
+    <li>Ortaklık bağlantıları sayfada “ortaklık linki” ifadesiyle işaretlenir ve <code>rel="sponsored"</code> özelliği taşır.</li>
+    <li>Komisyon alıp almamamız, içerikteki bilgi ve değerlendirmeleri etkilemez. Bir aracı yalnızca okuyucuya faydalı olabileceğini düşündüğümüzde öneririz.</li>
+    <li>Sitede üçüncü taraf reklam ağlarının (ör. Google AdSense) reklamları gösterilebilir. Reklamlar “Reklam” etiketiyle ayrılır; reklam verenlerin ürünlerini onayladığımız anlamına gelmez.</li>
+    <li>Reklam ve ortaklık araçlarının kullandığı çerezler hakkında bilgi için <a href={url('gizlilik-ve-cerezler/')}>Gizlilik, KVKK ve Çerez Politikası</a> sayfasına bakın.</li>
+  </ul>
+  <p>Ticari iletişim ve reklam mevzuatı (ör. Ticaret Bakanlığı'nın sosyal medya etkileyicileri ve ticari reklam düzenlemeleri) kapsamında bu metnin güncelliğinin bir uzmanca kontrol edilmesi önerilir.</p>
+  <p class="small">Son güncelleme: şablon — yayın öncesi tarih ve iletişim bilgisi eklenmelidir.</p>
+</Page>

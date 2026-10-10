@@ -1,0 +1,18 @@
+---
+/**
+ * Ortaklık (affiliate) linki. site.config.json -> affiliate.programs[program].id
+ * boşsa HİÇBİR ŞEY render etmez. Link rel="sponsored nofollow" taşır.
+ */
+import { cfg, url } from '../lib/site';
+interface Props { program: string; text?: string }
+const { program, text } = Astro.props;
+const p = cfg.affiliate?.programs?.[program];
+const id: string = p?.id ?? '';
+const href = p && id ? String(p.url).replace('{id}', encodeURIComponent(id)) : '';
+---
+{href && (
+  <span class="aff">
+    <a href={href} rel="sponsored nofollow noopener" target="_blank">{text ?? p.label}</a>
+    <a class="aff-note" href={url('ortaklik-aciklamasi/')} title="Ortaklık açıklaması">(ortaklık linki)</a>
+  </span>
+)}
