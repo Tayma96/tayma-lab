@@ -37,11 +37,13 @@ const year = new Date().getFullYear();
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:image" content={ogImage} />
+  <meta property="og:image:alt" content={fullTitle} />
   {publishedTime && <meta property="article:published_time" content={publishedTime} />}
   {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
   <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
   <link rel="alternate" type="application/rss+xml" title={cfg.siteName} href={url('rss.xml')} />
   <link rel="sitemap" href={url('sitemap.xml')} />
