@@ -1,6 +1,6 @@
 """
 Unit tests for the YouTube Long-Form Automation module.
-Tests script generator, high-CPM strategy engine, voice synthesizer, video generation & fallback, video assembler, and uploader.
+Tests script generator, high-CPM strategy engine, voice synthesizer, video generation & fallback, video assembler, thumbnail generator, branding helper, and uploader.
 """
 
 import os
@@ -11,8 +11,9 @@ from youtube_automation.strategy import get_optimized_monetization_strategy
 from youtube_automation.voice_synth import synthesize_scene_narration
 from youtube_automation.video_generator import create_procedural_fallback_clip, generate_scene_video
 from youtube_automation.assembler import assemble_scene_clip, assemble_full_video
+from youtube_automation.thumbnail_generator import generate_professional_thumbnail
+from youtube_automation.channel_branding import generate_channel_avatar, generate_channel_banner
 from youtube_automation.uploader import upload_to_youtube
-from youtube_automation.cli import run_pipeline
 
 
 def test_strategy_engine():
@@ -83,10 +84,33 @@ def test_video_assembler(tmp_path):
     assert os.path.getsize(final_res) > 0
 
 
+def test_thumbnail_generator(tmp_path):
+    out_thumb = str(tmp_path / "thumbnail.jpg")
+    res = generate_professional_thumbnail("10 MYSTERIOUS ANCIENT DISCOVERIES", out_thumb)
+    assert os.path.exists(res)
+    assert os.path.getsize(res) > 0
+
+
+def test_channel_branding(tmp_path):
+    avatar_path = str(tmp_path / "avatar.png")
+    banner_path = str(tmp_path / "banner.png")
+
+    res_avatar = generate_channel_avatar(avatar_path)
+    res_banner = generate_channel_banner(banner_path)
+
+    assert os.path.exists(res_avatar)
+    assert os.path.exists(res_banner)
+    assert os.path.getsize(res_avatar) > 0
+    assert os.path.getsize(res_banner) > 0
+
+
 def test_youtube_uploader_queue(tmp_path):
     video_file = str(tmp_path / "dummy_video.mp4")
+    thumb_file = str(tmp_path / "dummy_thumb.jpg")
     with open(video_file, "w") as f:
         f.write("dummy video content")
+    with open(thumb_file, "w") as f:
+        f.write("dummy thumb content")
 
     metadata = {
         "title": "Test YouTube Video Title",
@@ -94,8 +118,8 @@ def test_youtube_uploader_queue(tmp_path):
         "tags": ["test", "automation"]
     }
 
-    # Should save to queue since client_secret.json is not present in local test environment
-    result = upload_to_youtube(video_file, metadata, client_secrets_file=str(tmp_path / "non_existent.json"))
+    # Should save to queue since client_secret.json is tested with non-existent path
+    result = upload_to_youtube(video_file, metadata, thumbnail_path=thumb_file, client_secrets_file=str(tmp_path / "non_existent.json"))
     assert result["status"] == "QUEUED"
     assert "queue_file" in result
     assert os.path.exists(result["queue_file"])

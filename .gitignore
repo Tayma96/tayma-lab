@@ -31,6 +31,14 @@ cikti/
 ornek_veri/sonraki_donem/
 youtube_automation/upload_queue/
 
+# Secrets and Credentials
+client_secret.json
+*.json
+!.gitignore
+.env
+*.key
+*.pem
+
 # IDE
 .idea/
 .vscode/

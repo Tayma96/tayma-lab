@@ -20,13 +20,11 @@ def generate_ltx25_video(prompt: str, output_filepath: str, duration_sec: float 
         client = Client("RioShiina/LTX-2.5")
 
         # Call Gradio space endpoint for LTX-2.5 video generation
-        # If API fails or is busy/rate-limited, catch exception and return False
         result = client.predict(
             prompt,
-            api_name="/generate_video"  # standard Gradio predict endpoint
+            api_name="/generate_video"
         )
         if result and os.path.exists(result):
-            # Copy or convert result file to output_filepath
             clip = mp.VideoFileClip(result)
             clip = clip.resized(new_size=(1920, 1080))
             clip.write_videofile(output_filepath, fps=24, codec="libx264")
@@ -47,7 +45,6 @@ def create_procedural_fallback_clip(prompt: str, duration_sec: float, output_fil
 
     width, height = 1920, 1080
     fps = 24
-    num_frames = int(duration_sec * fps)
 
     # Seed based on prompt hash for consistent visual theme per prompt
     seed = abs(hash(prompt)) % (2**32)
@@ -58,11 +55,9 @@ def create_procedural_fallback_clip(prompt: str, duration_sec: float, output_fil
 
     def make_frame(t):
         progress = t / duration_sec
-        # Dynamic zoom and subtle rotation simulation
-        scale = 1.0 + 0.1 * progress
 
-        # Base gradient image
-        img = Image.new("RGB", (width, height))
+        # Base gradient image in RGBA mode for proper alpha blending
+        img = Image.new("RGBA", (width, height))
         draw = ImageDraw.Draw(img)
 
         # Draw dynamic ambient radial gradient glow
@@ -72,16 +67,16 @@ def create_procedural_fallback_clip(prompt: str, duration_sec: float, output_fil
         for r in range(width, 0, -60):
             factor = r / width
             c = (color1 * factor + color2 * (1 - factor)).astype(int)
-            c = tuple(np.clip(c, 0, 255))
-            draw.ellipse([center_x - r, center_y - r, center_x + r, center_y + r], fill=c)
+            c_tuple = tuple(np.clip(c, 0, 255)) + (255,)
+            draw.ellipse([center_x - r, center_y - r, center_x + r, center_y + r], fill=c_tuple)
 
-        # Draw subtle cinematic grid/particles overlay
+        # Draw subtle cinematic particles overlay with alpha
         for i in range(15):
             px = int((seed + i * 137 + t * 40) % width)
             py = int((seed + i * 211 + t * 25) % height)
             draw.ellipse([px - 4, py - 4, px + 4, py + 4], fill=(255, 255, 255, 180))
 
-        return np.array(img)
+        return np.array(img.convert("RGB"))
 
     clip = mp.VideoClip(make_frame, duration=duration_sec)
     clip.write_videofile(output_filepath, fps=fps, codec="libx264", logger=None)
