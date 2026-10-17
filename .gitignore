@@ -1,36 +1,47 @@
-# --- GERÇEK SATICI VERİSİ ASLA COMMIT EDİLMEZ ---
-gercek_veri/
-satici_verileri/
-saticilar/
-musteri_verileri/
-veri/
-data/
-uploads/
-yuklemeler/
-*.gercek.csv
-*.gercek.xlsx
-# API anahtarları / gizli bilgiler
-.env
-.env.*
-*.key
-secrets*.yaml
-config.local.yaml
-
-# Çıktılar: yalnızca örnek simülasyon sonucu commit edilir
-cikti/*
-!cikti/ornek_sonuc/
-!cikti/ornek_sonuc/**
-
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.venv*/
-venv/
-*.egg-info/
+*$py.class
+
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
 dist/
-.coverage
-htmlcov/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv
+venv/
+ENV/
+
+# Output directories
+cikti/
+ornek_veri/sonraki_donem/
+youtube_automation/upload_queue/
+
+# Secrets and Credentials
+client_secret.json
+*.json
+!.gitignore
+.env
+*.key
+*.pem
+
+# IDE
+.idea/
+.vscode/
+
+# System
 .DS_Store
-~$*.xlsx

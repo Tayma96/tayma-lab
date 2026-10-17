@@ -1,5 +1,0 @@
-# ÖRNEK VERİ - SENTETİK. Gerçek satıcı, sipariş veya kişi bilgisi içermez. Kolon adları Trendyol/Hepsiburada API alanlarını taklit eder; değerler uydurmadır.
-transactionId,transactionDate,paymentDate,paymentStatus,type,amount,orderNumber,sku,desi,cargoTrackingNumber,description
-ORNEK-HBT-D0001,2026-10-28,2026-11-04,Ödendi,Düzeltme - Komisyon,90.86,ORNEK-HB-200034,,,,VARSAYIMSAL düzeltme
-ORNEK-HBT-D0002,2026-10-28,2026-11-04,Ödendi,Düzeltme - Komisyon,44.64,ORNEK-HB-200038,,,,VARSAYIMSAL düzeltme
-ORNEK-HBT-D0003,2026-10-28,2026-11-04,Ödendi,Düzeltme - Hakediş,386.14,ORNEK-HB-200008,,,,VARSAYIMSAL düzeltme
