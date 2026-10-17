@@ -1,6 +1,6 @@
 """
 Video Assembler for 16:9 Long-Form Widescreen (1920x1080) YouTube Videos.
-Combines visual clips, voiceover narrations, subtitle captions, and transitions into a complete 13-minute video.
+Combines visual clips, voiceover narrations, cinematic background music, subtitle captions, and transitions.
 """
 
 import os
@@ -8,6 +8,8 @@ from typing import List, Dict, Any
 import moviepy as mp
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+
+from youtube_automation.audio_mixer import generate_ambient_soundtrack, mix_voice_and_soundtrack
 
 
 def create_subtitle_clip(text: str, duration_sec: float, width: int = 1920, height: int = 1080) -> mp.ImageClip:
@@ -17,14 +19,12 @@ def create_subtitle_clip(text: str, duration_sec: float, width: int = 1920, heig
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Text box near bottom of screen
     font_size = 38
     try:
         font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
     except Exception:
         font = ImageFont.load_default()
 
-    # Wrap text into lines of ~60 characters
     words = text.split()
     lines = []
     current_line = []
@@ -36,60 +36,63 @@ def create_subtitle_clip(text: str, duration_sec: float, width: int = 1920, heig
     if current_line:
         lines.append(" ".join(current_line))
 
-    # Keep maximum 2 lines visible at once
     lines = lines[:2]
     wrapped_text = "\n".join(lines)
 
-    # Draw semi-transparent background bar for subtitles
     bar_y = height - 160
     draw.rectangle([100, bar_y, width - 100, height - 60], fill=(0, 0, 0, 160))
-
-    # Draw text centered inside subtitle bar
     draw.multiline_text((width // 2, height - 110), wrapped_text, font=font, fill=(255, 255, 255, 255), anchor="mm", align="center")
 
     np_img = np.array(img)
     return mp.ImageClip(np_img).with_duration(duration_sec)
 
 
-def assemble_scene_clip(visual_path: str, audio_path: str, scene_data: Dict[str, Any]) -> mp.Clip:
+def assemble_scene_clip(visual_path: str, audio_path: str, scene_data: Dict[str, Any], work_dir: str) -> mp.Clip:
     """
-    Combines visual video clip and audio narration track for a single scene, looping or trimming visual clip to fit audio exactly.
+    Combines visual video clip and mixed audio narration track for a single scene.
     """
-    audio_clip = mp.AudioFileClip(audio_path)
-    audio_duration = audio_clip.duration
+    voice_clip = mp.AudioFileClip(audio_path)
+    audio_duration = voice_clip.duration
+    voice_clip.close()
 
+    # Create background music soundtrack for scene
+    scene_num = scene_data.get("scene_number", 1)
+    bg_music_file = os.path.join(work_dir, f"scene_{scene_num:02d}_bg_music.wav")
+    mixed_audio_file = os.path.join(work_dir, f"scene_{scene_num:02d}_mixed_audio.wav")
+
+    generate_ambient_soundtrack(audio_duration, bg_music_file)
+    mix_voice_and_soundtrack(audio_path, bg_music_file, mixed_audio_file)
+
+    mixed_audio_clip = mp.AudioFileClip(mixed_audio_file)
     video_clip = mp.VideoFileClip(visual_path)
 
-    # Loop video clip if narration is longer than visual, or trim if video is longer
     if video_clip.duration < audio_duration:
         num_loops = int(np.ceil(audio_duration / video_clip.duration))
         video_clip = mp.concatenate_videoclips([video_clip] * num_loops)
 
     video_clip = video_clip.subclipped(0, audio_duration)
-    video_clip = video_clip.with_audio(audio_clip)
+    video_clip = video_clip.with_audio(mixed_audio_clip)
 
-    # Add subtitle overlay clip
     sub_clip = create_subtitle_clip(scene_data["narration_text"], audio_duration)
     final_scene = mp.CompositeVideoClip([video_clip, sub_clip])
 
     return final_scene
 
 
-def assemble_full_video(scene_clips_info: List[Dict[str, Any]], output_filepath: str) -> str:
+def assemble_full_video(scene_clips_info: List[Dict[str, Any]], output_filepath: str, work_dir: str = "cikti/temp") -> str:
     """
     Assembles all processed scene clips sequentially into a full 16:9 widescreen video file.
     """
     os.makedirs(os.path.dirname(os.path.abspath(output_filepath)), exist_ok=True)
+    os.makedirs(work_dir, exist_ok=True)
 
     rendered_clips = []
     for info in scene_clips_info:
-        clip = assemble_scene_clip(info["visual_path"], info["audio_path"], info["scene_data"])
+        clip = assemble_scene_clip(info["visual_path"], info["audio_path"], info["scene_data"], work_dir)
         rendered_clips.append(clip)
 
-    # Concatenate all scenes into final video
     final_video = mp.concatenate_videoclips(rendered_clips, method="compose")
 
-    # Export full 1080p 16:9 video
     final_video.write_videofile(
         output_filepath,
         fps=24,
@@ -99,7 +102,6 @@ def assemble_full_video(scene_clips_info: List[Dict[str, Any]], output_filepath:
         logger=None
     )
 
-    # Close clips to free memory
     for c in rendered_clips:
         c.close()
     final_video.close()

@@ -7,13 +7,12 @@ import json
 from typing import Dict, Any
 
 
-def upload_to_youtube(video_path: str, metadata: Dict[str, Any], thumbnail_path: str = None, client_secrets_file: str = "client_secret.json") -> Dict[str, Any]:
+def upload_to_youtube(video_path: str, metadata: Dict[str, Any], thumbnail_path: str = None, client_secrets_file: str = "client_secret.json", token_file: str = "token.json") -> Dict[str, Any]:
     """
     Uploads long-form video to YouTube channel using YouTube Data API v3.
-    Also attaches custom high-CTR thumbnail if thumbnail_path is provided.
-    If client_secrets_file is missing, saves upload request into local queue for deferred upload.
+    Uses token.json if available, or client_secrets_file for OAuth authentication.
     """
-    if not os.path.exists(client_secrets_file):
+    if not os.path.exists(token_file) and not os.path.exists(client_secrets_file):
         queue_dir = "youtube_automation/upload_queue"
         os.makedirs(queue_dir, exist_ok=True)
         queue_file = os.path.join(queue_dir, f"queued_upload_{int(os.path.getmtime(video_path))}.json")
@@ -33,21 +32,33 @@ def upload_to_youtube(video_path: str, metadata: Dict[str, Any], thumbnail_path:
 
         return {
             "status": "QUEUED",
-            "message": f"OAuth client secrets file '{client_secrets_file}' not found. Saved video metadata to queue file.",
+            "message": f"OAuth token/client secrets file not found. Saved video metadata to queue file.",
             "queue_file": queue_file
         }
 
     try:
         from googleapiclient.discovery import build
         from googleapiclient.http import MediaFileUpload
+        from google.oauth2.credentials import Credentials
         from google_auth_oauthlib.flow import InstalledAppFlow
 
         SCOPES = [
             "https://www.googleapis.com/auth/youtube.upload",
             "https://www.googleapis.com/auth/youtube.force-ssl"
         ]
-        flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, SCOPES)
-        creds = flow.run_local_server(port=0)
+
+        creds = None
+        if os.path.exists(token_file):
+            creds = Credentials.from_authorized_user_file(token_file, SCOPES)
+            if creds and creds.expired and creds.refresh_token:
+                from google.auth.transport.requests import Request
+                creds.refresh(Request())
+
+        if not creds or not creds.valid:
+            flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, SCOPES)
+            creds = flow.run_local_server(port=0)
+            with open(token_file, "w") as token:
+                token.write(creds.to_json())
 
         youtube = build("youtube", "v3", credentials=creds)
 
@@ -56,7 +67,7 @@ def upload_to_youtube(video_path: str, metadata: Dict[str, Any], thumbnail_path:
                 "title": metadata.get("title")[:100],
                 "description": metadata.get("description"),
                 "tags": metadata.get("tags", []),
-                "categoryId": "27"  # Education / Science & Tech category
+                "categoryId": "27"
             },
             "status": {
                 "privacyStatus": "public",
@@ -73,7 +84,6 @@ def upload_to_youtube(video_path: str, metadata: Dict[str, Any], thumbnail_path:
 
         video_id = response.get("id")
 
-        # Set custom thumbnail if provided
         if thumbnail_path and os.path.exists(thumbnail_path) and video_id:
             try:
                 thumb_media = MediaFileUpload(thumbnail_path)

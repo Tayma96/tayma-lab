@@ -1,6 +1,6 @@
 """
 Unit tests for the YouTube Long-Form Automation module.
-Tests script generator, high-CPM strategy engine, voice synthesizer, video generation & fallback, video assembler, thumbnail generator, branding helper, and uploader.
+Tests script generator, high-CPM strategy engine, voice synthesizer, video generation & fallback, audio soundscape mixer, video assembler, thumbnail generator, branding helper, and uploader.
 """
 
 import os
@@ -10,6 +10,7 @@ from youtube_automation.script_generator import generate_13min_script
 from youtube_automation.strategy import get_optimized_monetization_strategy
 from youtube_automation.voice_synth import synthesize_scene_narration
 from youtube_automation.video_generator import create_procedural_fallback_clip, generate_scene_video
+from youtube_automation.audio_mixer import generate_ambient_soundtrack, mix_voice_and_soundtrack
 from youtube_automation.assembler import assemble_scene_clip, assemble_full_video
 from youtube_automation.thumbnail_generator import generate_professional_thumbnail
 from youtube_automation.channel_branding import generate_channel_avatar, generate_channel_banner
@@ -45,6 +46,21 @@ def test_voice_synth(tmp_path):
     assert os.path.getsize(audio_file) > 0
 
 
+def test_audio_mixer(tmp_path):
+    out_music = str(tmp_path / "ambient.wav")
+    out_mixed = str(tmp_path / "mixed.wav")
+
+    scene = {"scene_number": 1, "narration_text": "Short audio mix test narration."}
+    voice_file = synthesize_scene_narration(scene, str(tmp_path))
+
+    generate_ambient_soundtrack(duration_sec=3.0, output_filepath=out_music)
+    assert os.path.exists(out_music)
+
+    mix_voice_and_soundtrack(voice_file, out_music, out_mixed)
+    assert os.path.exists(out_mixed)
+    assert os.path.getsize(out_mixed) > 0
+
+
 def test_video_fallback_generator(tmp_path):
     output_file = str(tmp_path / "test_fallback.mp4")
     res = create_procedural_fallback_clip("Cinematic space scene", duration_sec=2.0, output_filepath=output_file)
@@ -54,7 +70,6 @@ def test_video_fallback_generator(tmp_path):
 
 def test_generate_scene_video(tmp_path):
     output_dir = str(tmp_path / "video")
-    # Will use procedural fallback if LTX-2.5 Space is offline/unreachable
     video_file = generate_scene_video("Cinematic ancient ruins", target_duration_sec=2.0, output_dir=output_dir, scene_num=1)
     assert os.path.exists(video_file)
     assert os.path.getsize(video_file) > 0
@@ -79,7 +94,7 @@ def test_video_assembler(tmp_path):
         "visual_path": visual_path
     }]
 
-    final_res = assemble_full_video(scene_clips_info, out_video)
+    final_res = assemble_full_video(scene_clips_info, out_video, work_dir=work_dir)
     assert os.path.exists(final_res)
     assert os.path.getsize(final_res) > 0
 
@@ -118,8 +133,7 @@ def test_youtube_uploader_queue(tmp_path):
         "tags": ["test", "automation"]
     }
 
-    # Should save to queue since client_secret.json is tested with non-existent path
-    result = upload_to_youtube(video_file, metadata, thumbnail_path=thumb_file, client_secrets_file=str(tmp_path / "non_existent.json"))
+    result = upload_to_youtube(video_file, metadata, thumbnail_path=thumb_file, client_secrets_file=str(tmp_path / "non_existent.json"), token_file=str(tmp_path / "non_existent_token.json"))
     assert result["status"] == "QUEUED"
     assert "queue_file" in result
     assert os.path.exists(result["queue_file"])

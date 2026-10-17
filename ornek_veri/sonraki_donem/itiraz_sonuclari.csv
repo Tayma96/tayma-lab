@@ -1,7 +1,0 @@
-# ÖRNEK VERİ - SENTETİK. Gerçek satıcı, sipariş veya kişi bilgisi içermez. Kolon adları Trendyol/Hepsiburada API alanlarını taklit eder; değerler uydurmadır.
-platform,siparis_no,kural,sonuc,not
-hepsiburada,ORNEK-HB-200020,iade_komisyonu,kabul,"VARSAYIMSAL: kabul edildi, düzeltme henüz yansımadı"
-trendyol,ORNEK-TY-100048,desi_farki,red,VARSAYIMSAL: pazaryeri talebi reddetti
-trendyol,ORNEK-TY-100109,desi_farki,red,VARSAYIMSAL: pazaryeri talebi reddetti
-trendyol,ORNEK-TY-100093,desi_farki,red,VARSAYIMSAL: pazaryeri talebi reddetti
-trendyol,ORNEK-TY-100090,desi_farki,red,VARSAYIMSAL: pazaryeri talebi reddetti

@@ -1,9 +1,10 @@
 """
 YouTube Long-Form Automation Pipeline Orchestrator.
-Main entry point for end-to-end 13-minute video production, thumbnail creation, channel branding, and YouTube publishing.
+Main entry point for end-to-end 13-minute video production, thumbnail creation, channel branding, and scheduled YouTube publishing.
 """
 
 import os
+import time
 import argparse
 from typing import Dict, Any
 
@@ -23,7 +24,7 @@ def run_pipeline(output_dir: str = "cikti/youtube_videos", custom_title: str = N
     2. Generates channel branding assets (Profile Avatar & Banner Art).
     3. Synthesizes high quality voiceover audio using edge-tts.
     4. Generates LTX-2.5 AI visual scenes (or procedural motion graphics fallback when limits are hit).
-    5. Assembles full 16:9 1080p widescreen video with voice, visuals, and captions.
+    5. Assembles full 16:9 1080p widescreen video with voice, ambient music, and captions.
     6. Generates high-CTR custom thumbnail (1280x720).
     7. Uploads to YouTube via YouTube Data API v3 (or queues locally if OAuth is pending).
     """
@@ -78,10 +79,9 @@ def run_pipeline(output_dir: str = "cikti/youtube_videos", custom_title: str = N
     print("\n[5/6] Assembling full 16:9 widescreen long-form video & creating high-CTR thumbnail...")
     final_video_filename = "youtube_13min_video.mp4"
     final_video_path = os.path.join(output_dir, final_video_filename)
-    assemble_full_video(scene_clips_info, final_video_path)
+    assemble_full_video(scene_clips_info, final_video_path, work_dir=work_dir)
 
     thumbnail_path = os.path.join(output_dir, "thumbnail.jpg")
-    first_scene_visual = scene_clips_info[0]["visual_path"] if scene_clips_info else None
     generate_professional_thumbnail(script["title"], thumbnail_path, bg_image_path=None)
     print(f" -> Final Video Rendered: {final_video_path}")
     print(f" -> Custom Thumbnail: {thumbnail_path}")
@@ -112,13 +112,36 @@ def run_pipeline(output_dir: str = "cikti/youtube_videos", custom_title: str = N
     }
 
 
+def schedule_daily_runs(output_dir: str = "cikti/youtube_videos", interval_hours: float = 24.0):
+    """
+    Runs the automated video production pipeline continuously every 24 hours.
+    """
+    print(f"⏱️ Starting YouTube Automated Daily Scheduler (Interval: {interval_hours} hours)...")
+    while True:
+        try:
+            print("\n-----------------------------------------------------")
+            print(f"⏰ [Daily Schedule Trigger] Starting video production at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            run_pipeline(output_dir=output_dir)
+            print(f"✅ Video production completed. Sleeping for {interval_hours} hours...")
+        except Exception as e:
+            print(f"⚠️ Error during scheduled video run: {e}. Retrying in 1 hour...")
+            time.sleep(3600)
+            continue
+
+        time.sleep(interval_hours * 3600)
+
+
 def main():
     parser = argparse.ArgumentParser(description="YouTube 13-Minute Long-Form Automation System")
     parser.add_argument("--out", type=str, default="cikti/youtube_videos", help="Directory to save generated video")
     parser.add_argument("--title", type=str, default=None, help="Optional video title topic")
+    parser.add_argument("--schedule", action="store_true", help="Run in continuous daily automated scheduling mode")
     args = parser.parse_args()
 
-    run_pipeline(output_dir=args.out, custom_title=args.title)
+    if args.schedule:
+        schedule_daily_runs(output_dir=args.out)
+    else:
+        run_pipeline(output_dir=args.out, custom_title=args.title)
 
 
 if __name__ == "__main__":

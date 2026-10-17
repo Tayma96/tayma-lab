@@ -1,23 +1,30 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hakedis"
+name = "youtube-automation"
 version = "0.1.0"
-description = "Trendyol / Hepsiburada hakediş geri kazanım tarayıcısı (iskelet, offline)"
+description = "Automated 13-minute long-form YouTube video generation and publishing tool using LTX-2.5"
+authors = [{ name = "Tayma" }]
 readme = "README.md"
-requires-python = ">=3.11"
-dependencies = ["pandas>=2.0", "openpyxl>=3.1", "PyYAML>=6.0"]
+requires-python = ">=3.10"
+dependencies = [
+    "moviepy>=2.0",
+    "edge-tts>=7.0",
+    "gradio_client>=2.0",
+    "google-api-python-client>=2.0",
+    "google-auth-oauthlib>=1.0",
+    "google-auth-httplib2>=0.1",
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "PyYAML>=6.0",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
-
-[project.scripts]
-hakedis = "hakedis.cli:main"
-
-[tool.setuptools.packages.find]
-include = ["hakedis*"]
+dev = [
+    "pytest>=8.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
