@@ -1,6 +1,6 @@
 # tayma-lab — YouTube kanal fabrikası
 
-Yüksek RPM.li (şirket hikayeleri, İngilizce, ABD/İngiltere/Kanada/Avustralya) bir YouTube kanalı için
+Yüksek RPM'li (şirket hikayeleri, İngilizce, ABD/İngiltere/Kanada/Avustralya) bir YouTube kanalı için
 yarı otomatik üretim hattı. Uzun video ana ürün; Shorts yalnızca uzun videonun fragmanı. Her video
 yayından önce insan onayından geçer.
 
