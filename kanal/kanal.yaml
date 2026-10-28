@@ -1,0 +1,36 @@
+# Kanalın tek ayar dosyası. Skiller (özellikle /yt-fabrika) buradan okur.
+# Gerekçeler: docs/STRATEJI.md
+
+kanal:
+  ad: null                 # henüz seçilmedi
+  nis: "How money works - personal finance and the economy, explained"
+  yedek_nis: "AI tools for work and small business"
+  dil: en
+  hedef_ulkeler: [US, GB, CA, AU]
+  kitle: "Adults 25-54 who earn, spend and save but were never taught how money works"
+  made_for_kids: false
+
+format:
+  uzun_video_dk: [8, 14]
+  haftalik_uzun_video: 2
+  uzun_video_basina_shorts: [2, 3]     # yalnızca uzun videodan kesilir
+  gorsel: remotion                     # animasyonlu grafik / tablo / harita
+  yuz: false
+
+ses:
+  saglayici: elevenlabs
+  model: eleven_v4
+  voice_id: null           # /yt-seslendirme ile tasarlanınca yazılacak
+  stability: 0.45
+  yapay_zeka_etiketi: true # YouTube Studio > altered or synthetic content
+
+yayin:
+  insan_onayi_zorunlu: true
+  varsayilan_gorunurluk: private      # onaydan sonra planlı yayına alınır
+  aciklama_alt_notu: >-
+    This video is for education only and is not financial advice.
+    Sources are linked below. Narration uses an AI voice.
+
+hedefler:
+  ypp: {abone: 1000, izlenme_saati_12ay: 4000}
+  ilk_kontrol: "8. videodan sonra: ortalama izlenme süresi, CTR, en çok izlenen 2 konu"
