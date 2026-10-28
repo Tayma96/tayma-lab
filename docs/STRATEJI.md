@@ -10,8 +10,8 @@ Gerekçeler ve kaynaklar: [ARASTIRMA.md](ARASTIRMA.md). Ayarlar: [`kanal/kanal.y
 | Kitle | Yetişkin, 25–54 | Reklamverenin en çok ödediği kitle. Çocuk/ergen değil. |
 | Ülke / dil | ABD, İngiltere, Kanada, Avustralya — **İngilizce** | En yüksek RPM'li ülkeler tek dilde. |
 | Format | **Uzun video ana ürün (8–14 dk), Shorts sadece fragman** | Para ve 4.000 saat uzun videodan gelir. |
-| Görsel | Yüzsüz; **zaman çizelgesi, gelir grafiği, harita, rakam kartları** (Remotion) | Hikayeyi rakamla gösteren grafik = özgün değer. Logo ve reklam görüntüsü yok. |
-| Ses | ElevenLabs **Eleven v4**, kanala özel tasarlanmış tek anlatıcı sesi | Gerçekçi, duygulu; kimseyi taklit etmiyor. Studio'da yapay zekâ etiketi açık. |
+| Görsel | Yüzsüz; **gerçek ve arşiv görüntü + harita, zaman çizelgesi, grafik, belge** | Gerçek görüntü "insan işi" hissini verir, grafik özgün değeri. Tek tip görsel = şablon. Logo ve reklam görüntüsü yok. |
+| Ses | **Chatterbox** (açık kaynak, ücretsiz, ticari kullanım serbest), satır satır yönetilmiş okuma | Duygu ayarı var; kimseyi taklit etmiyor. Kanal kazanınca ElevenLabs v4'e geçilebilir. |
 | Tempo | Haftada **2 uzun video + her birinden 2–3 Shorts** | Kalite kontrolüne zaman kalan en yüksek tempo. |
 
 Yedek niş: **teknoloji ve bilim açıklamaları** — aynı üretim hattıyla yapılır.
@@ -44,16 +44,31 @@ Rakamlar tahmin; gerçek değerler kanal açıldıktan 2–3 ay sonra Studio'dan
 - Ayda 1.000.000 izlenme → **≈ 4.000–10.000 $/ay**.
 - Bu nişte izlenme, finansa göre daha kolay gelir; RPM biraz düşük ama hacim telafi eder.
 - İlk 3–6 ay gelir **sıfır**: önce 1.000 abone + 4.000 saat eşiği aşılmalı.
-- Maliyet: ElevenLabs aboneliği, ayda birkaç on dolar. Remotion bireysel kullanımda ücretsiz.
+- Maliyet: **0 $** (aşağıdaki araç seti).
 
 Reklam dışı gelir: ileride sponsorluk (iş yazılımları bu nişe sponsor olur) ve açıklamada
 gerçekten önerilecek kitap/araç affiliate linkleri, "affiliate" diye belirtilerek.
+
+## Sıfır bütçe araç seti
+
+| İş | Araç | Not |
+|---|---|---|
+| Ses | Chatterbox (MIT) | GPU yoksa Nano modeli bilgisayarın işlemcisinde çalışır; GPU gerekirse Google Colab'ın ücretsiz GPU'su. **ElevenLabs'in ücretsiz planı ticari kullanıma kapalı**, para kazanan kanalda kullanılamaz. |
+| Gerçek görüntü | Pexels, Pixabay (ücretsiz API anahtarı) | Ticari kullanım serbest. |
+| Arşiv görüntü | Wikimedia Commons, Internet Archive, Library of Congress, NASA | Yalnızca kamu malı veya CC BY lisanslı dosyalar. |
+| Müzik / efekt | YouTube Ses Kitaplığı, Pixabay Music, Freesound (CC0) | |
+| Grafik ve animasyon | Remotion | Bireysel kullanımda ücretsiz. |
+| Kurgu | FFmpeg + `ffmpeg-skill` | Tamamen yerel, ücretsiz. |
+| Kalite kontrol | `insan-isi` skill'i | Şablon izlerini yayından önce yakalar. |
+
+Her kullanılan dosya `lisanslar.csv`'ye yazılır; kaynağı belli olmayan dosya videoya girmez.
 
 ## Kırmızı çizgiler
 
 - Gerçek kişi ve şirketler hakkında yalnızca kaynaklı bilgi; dedikodu ve iftira yok.
 - Şirket logosu, ürün fotoğrafı, reklam görüntüsü süs olarak kullanılmaz.
 - Yatırım tavsiyesi yok; uydurma rakam yok.
-- Gerçek kişinin sesi veya yüzü taklit edilmez.
+- Gerçek kişinin sesi veya yüzü taklit edilmez; Chatterbox'ın gizli filigranı silinmez.
+- YouTube'un yapay zekâ sorusu her yüklemede dürüstçe cevaplanır.
 - Aynı videonun varyasyonları seri halinde yüklenmez.
 - Hiçbir video insan onayı olmadan herkese açık yayınlanmaz.

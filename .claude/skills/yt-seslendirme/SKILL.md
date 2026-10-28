@@ -1,81 +1,101 @@
 ---
 name: yt-seslendirme
 description: >-
-  Turn a YouTube script into a realistic, emotional AI voiceover with
-  ElevenLabs Eleven v4 - pick or design the voice ("voice DNA"), mark the
-  script with emotion audio tags, generate it in parts, and add music and
-  sound effects. Use for "seslendir", "voiceover", "AI ses", "bu senaryoyu
-  oku", "kendi sesimi klonla", "karakter sesi", "duygulu ses", or right
-  after /yt-script when the user will not record their own voice.
+  Turn a YouTube script into a realistic, emotional voiceover at zero cost
+  with the open-source Chatterbox models (MIT, commercial use allowed),
+  with ElevenLabs Eleven v4 as the paid upgrade. Picks the voice, directs
+  the read line by line, generates it in parts and cleans the audio. Use
+  for "seslendir", "voiceover", "AI ses", "bu senaryoyu oku", "duygulu
+  ses", "kendi sesimi klonla", or right after /yt-script.
 ---
 
 # yt-seslendirme
 
-A script from `/yt-script` into finished narration. The API calls themselves live in the
-`text-to-speech`, `sound-effects`, `music`, `voice-changer` and `voice-isolator` skills: read the
-one you need before writing code. This skill decides WHAT to send them.
+The voice is the first thing that gives a faceless video away. A flat, perfectly even read with no
+breath is what people call "AI voice". The job here is a DIRECTED read, not a conversion.
 
-Needs `ELEVENLABS_API_KEY`. If it is missing, use the `onboarding` skill. Never ask for the key in
-chat.
+## Engine (read `ses` in `kanal/kanal.yaml`)
 
-## 1. The voice ("voice DNA")
+| Engine | Cost | Runs on | Use when |
+|---|---|---|---|
+| `chatterbox` original (500M) | free, MIT | free Colab GPU or local GPU | default narration; `exaggeration` + `cfg_weight` give the emotional range |
+| `chatterbox` Nano (110M) | free, MIT | **CPU**, ~3x realtime on 8 cores | no GPU at all; supports `[laugh]`, `[chuckle]`, `[cough]` tags |
+| `elevenlabs` `eleven_v4` | paid (Starter plan) | API | once the channel earns. The **free ElevenLabs plan is non-commercial** and cannot be used on a monetised channel |
 
-Ask which of these the user wants, once, before generating anything:
+```bash
+pip install chatterbox-tts
+```
 
-- **A library voice.** Fastest. List voices with the `text-to-speech` skill and play two or three
-  short samples of the hook line, not of "Hello world".
-- **A designed voice.** A new voice from a description (age, accent, energy, texture, e.g. "30s,
-  warm Istanbul Turkish, slightly husky, calm documentary narrator"). Done in the ElevenLabs
-  dashboard under Voices; bring back the `voice_id`.
-- **A clone of the user's own voice.** Instant clone from a minute of clean audio, or a
-  Professional clone for the most faithful result. Clean the sample with `voice-isolator` first.
+```python
+import torchaudio as ta
+from chatterbox.tts import ChatterboxTTS                 # original
+from chatterbox.tts_turbo import ChatterboxTurboTTS      # Turbo / Nano
 
-**Consent rule:** only clone a voice the user owns or has written permission to use. Never clone
-a celebrity, a politician, another creator, or anyone who has not agreed. If asked, refuse that
-voice and offer a designed voice in a similar style instead.
+model = ChatterboxTTS.from_pretrained(device="cuda")      # or "cpu" / "mps"
+wav = model.generate(line, audio_prompt_path="voice/ref.wav",
+                     exaggeration=0.6, cfg_weight=0.35)
+ta.save("01_hook.wav", wav, model.sr)
 
-Write the chosen `voice_id`, model and settings into `~/.claude/youtube/voice.md` under a
-`## AI voice` heading so every later run uses the same voice.
+nano = ChatterboxTurboTTS.from_pretrained(device="cpu", nano=True)  # Nano needs a reference clip
+```
 
-## 2. Mark the script for emotion
+Check the README of https://github.com/resemble-ai/chatterbox if an import fails; the API moves.
+Chatterbox embeds an inaudible watermark in every file. Never try to strip it.
 
-Default model: `eleven_v4` with `language_code="tr"` for Turkish. v4 ignores `style` and `speed`
-and does not read SSML. Emotion comes from three things only:
+## 1. The voice
 
-- **Audio tags** in square brackets before the line they colour: `[excited]`, `[whispers]`,
-  `[sighs]`, `[laughs]`, `[sarcastic]`, `[curious]`, `[serious]`.
-- **Punctuation.** Ellipses for a pause, a dash for a break, CAPITALS for one stressed word.
-- **Stability.** Around 0.35-0.5 for an emotional read, 0.6+ for steady narration.
+One narrator for the whole channel, chosen once and stored in `voice/` with its settings in
+`kanal.yaml`. Options, in order:
 
-Rules for tagging:
+1. **The model's own default voice** (original Chatterbox, no reference clip). Zero risk.
+2. **The user's own voice**: 10-20 s of clean speech recorded by the user, used as the reference.
+3. **A designed voice** from a paid tool later.
 
-- At most one tag per sentence, and not on every sentence. A script where everything is
-  `[excited]` sounds like nothing is.
-- The hook gets the most deliberate tag. The body is mostly untagged.
-- Strip every `[ON SCREEN: ...]` note from `/yt-script` output before sending - the model will read
-  it out loud.
-- Write numbers the way they should be said if `apply_text_normalization` gets them wrong.
+Never use a recording of another real person as the reference clip (a celebrity, another creator,
+an audiobook narrator, a film), even if the recording itself is public domain. Refuse and offer
+option 1 or 2.
 
-Show the user the tagged script and get a yes before spending characters.
+## 2. Direct the script
+
+Split the script into lines of one or two sentences. For each line decide, and write next to it:
+
+- **Energy**: `exaggeration` 0.4 (calm fact) to 0.8 (reveal, twist). Lower `cfg_weight` (~0.3) when
+  exaggeration goes up, so the pace stays deliberate.
+- **Pause**: punctuation does the work. A full stop and a new line before a reveal; an ellipsis for
+  a held beat; a dash for a turn.
+- **Tag** (Nano/Turbo, or v4): at most one per 30 seconds. A `[chuckle]` on a line that is
+  actually funny sounds human; a tag every line sounds like a demo.
+
+Rules that make it sound read by a person:
+
+- Vary sentence length in the SCRIPT. Three long sentences in a row produce the robot cadence no
+  setting can fix.
+- Write numbers as spoken ("about two point four billion", not "$2.4B").
+- Strip every `[ON SCREEN: ...]` note before generating.
+- Contractions ("it's", "didn't") unless the line needs weight.
+
+Show the directed script to the user before generating.
 
 ## 3. Generate
 
-- **Hook first, alone.** Generate the first 15 seconds in two takes (different `seed`) and let the
-  user pick. If the hook sounds wrong, the rest will too.
-- **Then beat by beat**, one request per beat, using `previous_text` / `next_text` so the joins do
-  not pop. Name files `01_hook.mp3`, `02_turn.mp3`... so the order survives.
-- Report the character count from the `x-character-count` header after each run, so the user sees
-  the cost.
+- **Hook first, three takes** (different settings), the user picks. If the hook sounds synthetic
+  the rest will too: fix the writing, not the settings.
+- Then line by line, files numbered in order (`001.wav`, `002.wav`...). Regenerate any line that
+  mispronounces a name or stumbles; never ship a stumble.
+- Join with `ffmpeg-skill`, leaving 150-400 ms of room tone between lines (longer before a reveal),
+  not silence and not a hard butt joint.
 
-## 4. Music and effects (optional)
+## 4. Finish the audio
 
-- Background bed: the `music` skill, instrumental, the length of the video, and say "no vocals".
-  Keep it 15-20 dB under the voice.
-- Transitions, whooshes, risers: the `sound-effects` skill, short and few.
-- If the user records a rough take themselves but wants a different voice, use `voice-changer`
-  instead of TTS: their timing and emotion survive.
+With `ffmpeg-skill`: light denoise, normalise to -14 LUFS for YouTube, music bed 15-20 dB under the
+voice with ducking. Listen to the whole file once at 1x before handing it on.
+
+## Honesty
+
+Answer YouTube's AI-use question in Studio truthfully for every upload; `kanal.yaml`
+`yapay_zeka_etiketi` records the channel's standing answer. Quality is what keeps a video out of
+the shadows, not hiding how it was made.
 
 ## The gate
 
-Nothing here publishes. Every run ends with the files listed in order, their total runtime, the
-characters used, and the question: **ship it, or change it?**
+Every run ends with the files in order, total runtime and the question: **ship it, or change it?**

@@ -32,20 +32,28 @@ Never chain stages silently.
    `kaynaklar.md`. Prefer primary sources: annual reports and SEC filings, founders' own interviews and books, reputable press (Reuters, Bloomberg, FT, WSJ).
    Any number without a source is cut, not guessed. Note the date of each figure.
 3. **Script.** `/yt-script`, in the channel's language, 8-14 minutes at 150 wpm. Every
-   `[ON SCREEN: ...]` beat names a chart, table, map or text card that Remotion can draw from the
-   numbers in `kaynaklar.md`. End with the education-only line from `kanal.yaml`.
+   `[ON SCREEN: ...]` beat names what is seen: a real or archival shot, a map, a chart, a document
+   or a text card. End with the disclaimer line from `kanal.yaml`.
 4. **Packaging before production.** `/yt-package` for title and thumbnail. If no title scores
    well, the topic is weak: go back to stage 1 rather than producing a video nobody clicks.
-5. **Voice.** `/yt-seslendirme` with the channel `voice_id` and settings from `kanal.yaml`.
-6. **Visuals.** Load `remotion-best-practices` and build the video as data-driven compositions in
-   `video/` (one composition per beat, shared channel style). Show the Studio preview; render only
-   after the user approves the preview.
-7. **Chapters and SEO.** `/yt-chapters` from the voiceover transcript (`speech-to-text` if needed),
-   then `/yt-seo`. Sources from `kaynaklar.md` go in the description.
-8. **Shorts.** `/yt-shorts` on the finished long video: 2-3 cuts, each ending by pointing to the
-   long video. Vertical Remotion compositions reuse the long video's charts.
-9. **Policy check.** Fill in the checklist below in `durum.md`. Any "no" blocks upload.
-10. **Hand-off.** List every file to upload, the title, description, tags, chapters, thumbnail and
+5. **Voice.** `/yt-seslendirme` with the engine and settings in `kanal.yaml` (zero budget:
+   Chatterbox).
+6. **Visuals.** Two layers:
+   - **Footage**: `ucretsiz-kaynak` finds real and archival shots for every beat and writes
+     `lisanslar.csv`.
+   - **Graphics**: `remotion-best-practices` renders the charts, maps, timelines and text cards in
+     the channel style, as separate clips.
+   Show the user a shot list (timecode, line, shot, source) before downloading or rendering.
+7. **Edit.** `ffmpeg-skill` assembles voice, footage, graphics, music and sound effects into the
+   16:9 master: shot every 4-8 s, slow push-ins on stills, music ducked under the voice, -14 LUFS,
+   YouTube export. Show a 720p preview first; the final render only after the user approves it.
+8. **Chapters and SEO.** `/yt-chapters` from the voiceover transcript, then `/yt-seo`. Sources from
+   `kaynaklar.md` and credits from `lisanslar.csv` go in the description.
+9. **Shorts.** `/yt-shorts` on the finished long video: 2-3 cuts reframed to 9:16 with
+   `ffmpeg-skill`, each ending by pointing to the long video.
+10. **Quality and policy.** Run `insan-isi`; anything under 8/10 goes back to the weakest stage.
+    Then fill in the checklist below in `durum.md`. Any "no" blocks upload.
+11. **Hand-off.** List every file to upload, the title, description, tags, chapters, thumbnail and
     the schedule time. Upload as **private** (or scheduled) only; making a video public is always
     the user's action.
 
@@ -58,9 +66,10 @@ Never chain stages silently.
       as opinions. Nothing that could read as defamation.
 - [ ] No company logos, product photos or ad footage used as decoration; company names and our own
       charts, timelines and maps instead.
-- [ ] The voice imitates no real person. Altered/synthetic content disclosure will be ticked.
+- [ ] The voice imitates no real person. YouTube's AI-use / altered content question will be
+      answered truthfully at upload.
 - [ ] `made_for_kids` is false and the content is not aimed at children.
-- [ ] No third-party footage, music or images without a licence we can name.
+- [ ] Every footage, image, music and sound file has a row in `lisanslar.csv`.
 - [ ] Title and thumbnail promise only what the video delivers.
 
 ## Cadence guard

@@ -14,15 +14,17 @@ format:
   uzun_video_dk: [8, 14]
   haftalik_uzun_video: 2
   uzun_video_basina_shorts: [2, 3]     # yalnızca uzun videodan kesilir
-  gorsel: remotion                     # animasyonlu grafik / tablo / harita
+  gorsel: [gercek_goruntu, arsiv, harita, grafik, belge]  # ucretsiz-kaynak + remotion
+  kurgu: ffmpeg-skill
   yuz: false
 
 ses:
-  saglayici: elevenlabs
-  model: eleven_v4
-  voice_id: null           # /yt-seslendirme ile tasarlanınca yazılacak
-  stability: 0.45
-  yapay_zeka_etiketi: true # YouTube Studio > altered or synthetic content
+  saglayici: chatterbox    # ücretsiz, MIT. Kanal kazanınca: elevenlabs eleven_v4 (ücretli plan)
+  model: original          # GPU yoksa: nano (CPU'da çalışır)
+  referans: null           # voice/ref.wav - yalnızca modelin kendi sesi ya da kullanıcının kendi sesi
+  exaggeration: 0.55
+  cfg_weight: 0.4
+  yapay_zeka_etiketi: true # YouTube Studio'daki AI sorusu her yüklemede dürüstçe cevaplanır
 
 yayin:
   insan_onayi_zorunlu: true
@@ -31,6 +33,10 @@ yayin:
     Sources for every fact are linked below. This video is for education and
     entertainment only, not financial advice. Narration uses an AI voice.
     Trademarks belong to their owners; this channel is not affiliated with them.
+
+butce:
+  aylik_usd: 0
+  ucretsiz_api_anahtarlari: [PEXELS_API_KEY, PIXABAY_API_KEY]  # .env içinde
 
 hedefler:
   ypp: {abone: 1000, izlenme_saati_12ay: 4000}

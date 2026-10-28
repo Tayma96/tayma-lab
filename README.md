@@ -23,17 +23,21 @@ Hat şu skilleri sırayla çalıştırır (hepsi `.claude/skills/` altında):
 | Konu | `yt-viral` |
 | Senaryo | `yt-script` |
 | Başlık + küçük resim | `yt-package` |
-| Seslendirme (Eleven v4) | `yt-seslendirme`, `text-to-speech`, `music`, `sound-effects` |
-| Görsel (animasyonlu grafik) | `remotion-best-practices` |
+| Seslendirme (Chatterbox, ücretsiz) | `yt-seslendirme` |
+| Görüntü, müzik, efekt (ücretsiz, lisans kayıtlı) | `ucretsiz-kaynak` |
+| Grafik, harita, zaman çizelgesi | `remotion-best-practices` |
+| Kurgu ve YouTube çıktısı | `ffmpeg-skill` |
 | Bölümler + açıklama | `yt-chapters`, `speech-to-text`, `yt-seo` |
 | Shorts | `yt-shorts` |
+| "İnsan işi" kalite kontrolü | `insan-isi` |
 | Analiz | `yt-retention`, `yt-audit`, `yt-plan`, `yt-comment` |
 
 ## Gerekenler
 
-- `ELEVENLABS_API_KEY` (seslendirme) — `onboarding` skill'i kurar.
-- Node.js (Remotion), Python 3.
+- Bütçe: 0 $. Ücretsiz `PEXELS_API_KEY` ve `PIXABAY_API_KEY` (`.env` içine).
+- Python 3.10+, FFmpeg, Node.js (Remotion), `pip install chatterbox-tts`.
+- İleride ücretli yükseltme: ElevenLabs (`text-to-speech` vb. skiller hazır).
 - Bir YouTube kanalı. Yükleme şimdilik elle; YouTube API ile özel/planlı yükleme bir sonraki adım.
 
 Dışarıdan alınan skillerin kaynak ve lisansları: `.claude/youtube-agent/`, `.claude/elevenlabs/`,
-`.claude/remotion/`.
+`.claude/remotion/`, `.claude/ffmpeg-skill/`.
