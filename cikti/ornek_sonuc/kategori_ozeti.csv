@@ -1,8 +1,0 @@
-kural,kategori,tespit_sayisi,tespit_tutari_tl,dosyalanacak_sayisi,dosyalanacak_tutar_tl,beklenen_tl_tahmin
-iade_komisyonu,İadede geri verilmeyen komisyon,15,1754.15,15,1754.15,1578.72
-desi_farki,Hatalı (fazla) desi ile kesilen kargo,26,552.0,18,464.5,272.9
-iptal_kargo,İptal / teslim edilemeyen siparişe kesilen kargo,11,793.0,7,507.0,430.96
-mukerrer_kesinti,Mükerrer (çift) kesinti,6,349.99,4,273.0,245.7
-dayanaksiz_kesinti,Dayanağı olmayan hizmet / ceza bedeli,6,545.0,5,450.0,355.5
-odenmeyen_hakedis,Teslim edilen siparişin ödenmeyen hakedişi,6,4771.04,6,4771.04,3444.4
-TOPLAM,TOPLAM,70,8765.18,55,8219.69,6328.18
