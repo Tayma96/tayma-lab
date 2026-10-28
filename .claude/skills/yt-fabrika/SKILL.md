@@ -29,7 +29,7 @@ Never chain stages silently.
    `uretim/`). Offer three, with the multiple and the one-line promise of each. One question per
    video; two questions is two videos.
 2. **Research.** Collect the facts the script will state, each with a source URL, into
-   `kaynaklar.md`. Prefer primary sources (central banks, statistics offices, official filings).
+   `kaynaklar.md`. Prefer primary sources: annual reports and SEC filings, founders' own interviews and books, reputable press (Reuters, Bloomberg, FT, WSJ).
    Any number without a source is cut, not guessed. Note the date of each figure.
 3. **Script.** `/yt-script`, in the channel's language, 8-14 minutes at 150 wpm. Every
    `[ON SCREEN: ...]` beat names a chart, table, map or text card that Remotion can draw from the
@@ -53,7 +53,11 @@ Never chain stages silently.
 
 - [ ] This video answers a question no earlier video on the channel answered.
 - [ ] Every number on screen or in the narration has a source in `kaynaklar.md`.
-- [ ] No financial advice: no "buy X", no price predictions; education-only line present.
+- [ ] No financial advice: no "buy this stock", no price predictions; disclaimer line present.
+- [ ] Claims about real people and companies are sourced facts, not rumour; opinions are labelled
+      as opinions. Nothing that could read as defamation.
+- [ ] No company logos, product photos or ad footage used as decoration; company names and our own
+      charts, timelines and maps instead.
 - [ ] The voice imitates no real person. Altered/synthetic content disclosure will be ticked.
 - [ ] `made_for_kids` is false and the content is not aimed at children.
 - [ ] No third-party footage, music or images without a licence we can name.

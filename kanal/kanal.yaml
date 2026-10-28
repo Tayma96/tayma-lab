@@ -3,11 +3,11 @@
 
 kanal:
   ad: null                 # henüz seçilmedi
-  nis: "How money works - personal finance and the economy, explained"
-  yedek_nis: "AI tools for work and small business"
+  nis: "Business stories - how companies rose, fell and made their money"
+  yedek_nis: "Technology and science, explained"
   dil: en
   hedef_ulkeler: [US, GB, CA, AU]
-  kitle: "Adults 25-54 who earn, spend and save but were never taught how money works"
+  kitle: "Adults 25-54 curious about business, brands and the people behind them"
   made_for_kids: false
 
 format:
@@ -28,8 +28,9 @@ yayin:
   insan_onayi_zorunlu: true
   varsayilan_gorunurluk: private      # onaydan sonra planlı yayına alınır
   aciklama_alt_notu: >-
-    This video is for education only and is not financial advice.
-    Sources are linked below. Narration uses an AI voice.
+    Sources for every fact are linked below. This video is for education and
+    entertainment only, not financial advice. Narration uses an AI voice.
+    Trademarks belong to their owners; this channel is not affiliated with them.
 
 hedefler:
   ypp: {abone: 1000, izlenme_saati_12ay: 4000}
