@@ -1,0 +1,68 @@
+"""ffmpeg ile 16:9 klibi 1080x1920 dikey videoya çevirir: bulanık arka plan / yüz kamerası düzeni,
+altyazı, açılış kancası, kredi ve ses normalizasyonu."""
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+
+def probe_duration(path: Path) -> float:
+    res = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", str(path)],
+                         capture_output=True, text=True, check=True)
+    return float(json.loads(res.stdout)["format"]["duration"])
+
+
+def filter_graph(zoom: float = 1.0, facecam: dict | None = None, subs: str | None = None) -> str:
+    """Saf fonksiyon: ffmpeg filter_complex metnini üretir. Çıkış etiketi [v]."""
+    z = max(1.0, float(zoom))
+    if facecam:
+        x, y, w, h = (float(facecam[k]) for k in ("x", "y", "w", "h"))
+        graph = (
+            f"[0:v]crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=1080:640:force_original_aspect_ratio=increase,"
+            f"crop=1080:640,setsar=1[cam];"
+            f"[0:v]crop=ih*0.84375/{z}:ih/{z},scale=1080:1280,setsar=1[game];"
+            f"[cam][game]vstack=inputs=2[v0]"
+        )
+    else:
+        graph = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+            "boxblur=25:2,eq=brightness=-0.10,setsar=1[bg];"
+            f"[0:v]crop=iw/{z}:ih/{z},scale=1080:-2,setsar=1[fg];"
+            "[bg][fg]overlay=(W-w)/2:(H-h)/2[v0]"
+        )
+    if subs:
+        graph += f";[v0]subtitles={subs}[v]"
+    else:
+        graph += ";[v0]null[v]"
+    return graph
+
+
+def caption_y(facecam: dict | None) -> int:
+    # Bulanık düzende oyun görüntüsü ~656-1264 arası; altyazı hemen altına.
+    # Yüz kamerası düzeninde iki panelin birleştiği yerin biraz altına.
+    return 820 if facecam else 1420
+
+
+def render(src: Path, out: Path, *, ass_path: Path | None, zoom: float, facecam: dict | None,
+           start: float | None = None, duration: float | None = None) -> Path:
+    # subtitles filtresi yol kaçışında sorun çıkarmasın diye ffmpeg'i .ass'in klasöründe çalıştırıyoruz
+    cwd = ass_path.parent if ass_path else None
+    cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+    if start is not None:
+        cmd += ["-ss", f"{start:.2f}"]
+    cmd += ["-i", str(src.resolve())]
+    if duration is not None:
+        cmd += ["-t", f"{duration:.2f}"]
+    cmd += [
+        "-filter_complex", filter_graph(zoom, facecam, ass_path.name if ass_path else None),
+        "-map", "[v]", "-map", "0:a?",
+        "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",
+        "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart",
+        str(out.resolve()),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
+    if res.returncode != 0:
+        raise RuntimeError(f"ffmpeg başarısız: {res.stderr.strip()[-1500:]}")
+    return out

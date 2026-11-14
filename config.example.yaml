@@ -1,0 +1,45 @@
+# Kopyala: cp config.example.yaml config.yaml
+
+game_name: "Grand Theft Auto VI"
+
+discovery:
+  language: en              # sadece İngilizce yayınlar
+  lookback_hours: 24        # son kaç saatin klipleri
+  min_views: 500            # bu izlenmenin altındaki klipleri atla
+  min_duration: 8           # saniye
+  max_clips_per_run: 15
+  # En çok izlenen yayıncılar önce gelsin: şu an GTA 6 yayınında olan ilk N yayıncının kliplerine bonus
+  top_streamers_boost: 30
+
+# Şikayet eden ya da istemediğin yayıncıları buraya ekle (küçük harf, Twitch kullanıcı adı)
+blocklist: []
+
+# Yayıncıya özel yüz kamerası konumu (oranlar 0-1, kaynak videonun genişlik/yüksekliğine göre).
+# Tanımlı değilse oyun görüntüsü bulanık arka planın ortasına yerleşir.
+facecams:
+  # ornekyayinci: {x: 0.0, y: 0.0, w: 0.25, h: 0.3}
+
+render:
+  zoom: 1.15                # oyun görüntüsüne hafif yakınlaştırma
+  captions: true            # Whisper ile kelime kelime altyazı (faster-whisper gerekir)
+  whisper_model: small
+  hook: true                # üstte büyük açılış metni
+  credit: true              # alt kısımda "twitch.tv/<yayıncı>" kredisi
+
+metadata:
+  model: claude-opus-5-5
+  effort: low
+
+upload:
+  youtube:
+    enabled: true
+    max_per_day: 6          # varsayılan API kotası ~6 yükleme/gün
+    privacy: public
+    category_id: "20"       # Gaming
+  tiktok:
+    enabled: true
+    max_per_day: 10
+  min_gap_minutes: 45       # aynı platformda iki yükleme arası
+
+paths:
+  data_dir: data
