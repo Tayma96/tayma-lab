@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "yutu": {
+      "command": "yutu",
+      "args": ["mcp", "-m", "stdio"],
+      "env": {
+        "YUTU_CREDENTIAL": "${YUTU_CREDENTIAL:-secrets/youtube_client_secret.json}",
+        "YUTU_CACHE_TOKEN": "${YUTU_CACHE_TOKEN:-secrets/yutu_token.json}"
+      }
+    }
+  }
+}

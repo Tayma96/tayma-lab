@@ -29,11 +29,12 @@ cp .env.example .env      # anahtarları doldur
 | `TWITCH_CLIENT_ID/SECRET` | dev.twitch.tv/console/apps | Hemen alınır |
 | `ANTHROPIC_API_KEY` | platform.claude.com | Boşsa şablon başlık kullanılır |
 | YouTube OAuth JSON | Google Cloud Console → YouTube Data API v3 → OAuth client (Desktop) | `secrets/youtube_client_secret.json` |
-| `TIKTOK_CLIENT_KEY/SECRET` | developers.tiktok.com → Content Posting API, `video.publish` | Redirect URI: `http://localhost:8765/callback` |
+| TikTok çerezi | Tarayıcıda giriş → "Get cookies.txt LOCALLY" → `secrets/tiktok_cookies.txt` (ya da `TIKTOK_SESSIONID`) | `method: browser` için |
+| `TIKTOK_CLIENT_KEY/SECRET` | developers.tiktok.com → Content Posting API, `video.publish` | Sadece `method: api` için |
 
 ```bash
+pip install -e '.[captions,tiktok-browser]' && playwright install chromium
 gta6clips auth youtube    # tarayıcıda izin ver
-gta6clips auth tiktok
 ```
 
 ## Kullanım
@@ -57,25 +58,30 @@ docker run -d --restart unless-stopped -v $PWD/data:/app/data -v $PWD/secrets:/a
   --env-file .env -v $PWD/config.yaml:/app/config.yaml gta6clips
 ```
 
-## ⚠️ Bilmen gerekenler
+## Kullanılan açık kaynak projeler ve Claude skill'leri
 
-**Otomatik yüklemedeki platform kısıtları**
+| Proje | Ne için | Nasıl |
+|---|---|---|
+| [wkaisertexas/tiktok-uploader](https://github.com/wkaisertexas/tiktok-uploader) (MIT) | TikTok'a denetim beklemeden herkese açık yükleme | `upload.tiktok.method: browser`, `pip install -e '.[tiktok-browser]' && playwright install chromium` |
+| [eat-pray-ai/yutu](https://github.com/eat-pray-ai/yutu) (Apache-2.0) | YouTube kanal yönetimi: SEO, yorum, oynatma listesi, silme | `.claude/skills/youtube` (resmi skill'leri) + `.mcp.json` (yutu MCP sunucusu) |
+| [Anil-matcha/AI-Youtube-Shorts-Generator](https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator) (MIT) | Yüz takibi ve viral an ölçütleri | Fikir olarak uyarlandı: `facecam.py` (yüz kamerası tespiti), `highlights.VIRALITY_SYSTEM` (Claude ile VOD puanlama) |
+
+Claude Code bu repoda şu skill'leri kullanır (`.claude/skills/`):
+- **gta6-clips**: otomasyonu çalıştırma, ayarlama, sorun giderme, şikayet gelen yayıncıyı engelleyip videolarını bulma
+- **tiktok-upload**: iki TikTok yöntemi, çerez alma, hata çözümü
+- **youtube**: yutu'nun resmi skill'i (MCP üzerinden YouTube işlemleri + SEO rehberi)
+- **viral-shorts**: an seçimi, kanca, başlık, hashtag ilkeleri
+
+yutu kurulumu: `npm i -g @eat-pray-ai/yutu`, sonra `yutu auth --credential secrets/youtube_client_secret.json --cacheToken secrets/yutu_token.json`.
+
+## ⚠️ Platform kısıtları
 - **YouTube:** Denetimden geçmemiş API projelerinden yüklenen videoları Google gizli (private) olarak
   kilitliyor. Google Cloud Console'dan *YouTube API Services Audit* başvurusu yap. Varsayılan kota
   günde yaklaşık 6 yüklemeye yetiyor (`max_per_day: 6`).
-- **TikTok:** Denetimden geçmemiş uygulamalar sadece `SELF_ONLY` (gizli) paylaşabiliyor. Kod hesabın
-  izin verdiği en açık seviyeyi otomatik seçiyor; denetim onaylanınca kendiliğinden herkese açık
-  paylaşmaya başlıyor. Denetim haftalar sürebilir, **hemen başvur**.
-- İki denetim de bitene kadar en hızlı yol: `run --no-upload` ile üret, `data/out/` içindeki
-  videoları elle yükle. Başlık ve hashtag'ler `gta6clips status` / veritabanında hazır duruyor.
-
-**Telif hakkı**
-- Yayınların hakkı yayıncılara ait. İzinsiz yeniden yüklemeler Content ID talebi ve DMCA uyarısı
-  alabilir; YouTube'da 3 uyarı kanalın kapanması demek. Ayrıca sadece başkasının içeriğini yükleyen
-  kanallar YouTube'un "yeniden kullanılmış içerik" kuralı yüzünden para kazanamayabilir.
-- Riski azaltan şeyler: her klipte görünür kredi var (`credit: true`), kurgu (altyazı ve kanca)
-  klibi birebir kopya olmaktan çıkarıyor. Şikayet eden yayıncıyı `blocklist`'e ekle.
-- En güvenlisi: clipping programı olan ya da izin veren yayıncılarla çalışmak.
+- **TikTok:** Varsayılan `method: browser` herkese açık paylaşır. Bu resmi API değil; TikTok
+  otomasyonu fark ederse hesabı doğrulamaya sokabilir, günlük limiti makul tut. `method: api`
+  denetim onaylanana kadar sadece gizli paylaşır.
+- **Telif:** Şikayet gelirse yayıncıyı `blocklist`'e ekle. Videolarını bulup silme adımları `gta6-clips` skill'inde.
 
 ## Yapı
 ```
@@ -85,9 +91,10 @@ src/gta6clips/
   transcribe.py   faster-whisper (kelime zamanları)
   captions.py     ASS altyazı (kelime vurgulu, kanca, kredi)
   editor.py       ffmpeg dikey kurgu
-  highlights.py   VOD ses zirvesi tespiti
+  facecam.py      OpenCV ile yüz kamerası tespiti
+  highlights.py   VOD ses zirvesi + Claude viral puanlama
   metadata.py     Claude ile başlık/açıklama/hashtag
-  uploaders/      youtube.py, tiktok.py
+  uploaders/      youtube.py, tiktok.py (API), tiktok_browser.py (tiktok-uploader)
   pipeline.py     akış
   db.py           SQLite (tekrar yüklemeyi önler, günlük limit)
   cli.py

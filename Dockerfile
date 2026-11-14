@@ -4,5 +4,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg fonts-de
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir '.[captions]'
+RUN pip install --no-cache-dir '.[captions,tiktok-browser]' \
+    && playwright install --with-deps chromium
 CMD ["gta6clips", "run", "--loop", "--interval", "30"]

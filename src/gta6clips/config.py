@@ -22,6 +22,7 @@ DEFAULTS: dict[str, Any] = {
     "facecams": {},
     "render": {
         "zoom": 1.15,
+        "auto_facecam": True,
         "captions": True,
         "whisper_model": "small",
         "hook": True,
@@ -30,7 +31,8 @@ DEFAULTS: dict[str, Any] = {
     "metadata": {"model": "claude-opus-5-5", "effort": "low"},
     "upload": {
         "youtube": {"enabled": True, "max_per_day": 6, "privacy": "public", "category_id": "20"},
-        "tiktok": {"enabled": True, "max_per_day": 10},
+        "tiktok": {"enabled": True, "max_per_day": 10, "method": "browser", "headless": True,
+                   "browser": "chromium", "visibility": "everyone"},
         "min_gap_minutes": 45,
     },
     "paths": {"data_dir": "data"},

@@ -14,13 +14,15 @@ discovery:
 # Şikayet eden ya da istemediğin yayıncıları buraya ekle (küçük harf, Twitch kullanıcı adı)
 blocklist: []
 
-# Yayıncıya özel yüz kamerası konumu (oranlar 0-1, kaynak videonun genişlik/yüksekliğine göre).
-# Tanımlı değilse oyun görüntüsü bulanık arka planın ortasına yerleşir.
+# Yüz kamerası konumu otomatik bulunur (render.auto_facecam) ve data/facecams.json'a yazılır.
+# Yanlış bulursa buradan elle düzelt (oranlar 0-1, kaynak videoya göre); elle girilen her zaman önceliklidir.
+# Yüz kamerası yoksa oyun görüntüsü bulanık arka planın ortasına yerleşir.
 facecams:
   # ornekyayinci: {x: 0.0, y: 0.0, w: 0.25, h: 0.3}
 
 render:
   zoom: 1.15                # oyun görüntüsüne hafif yakınlaştırma
+  auto_facecam: true        # OpenCV ile yüz kamerasını bul -> üstte yüz, altta oyun düzeni
   captions: true            # Whisper ile kelime kelime altyazı (faster-whisper gerekir)
   whisper_model: small
   hook: true                # üstte büyük açılış metni
@@ -39,6 +41,11 @@ upload:
   tiktok:
     enabled: true
     max_per_day: 10
+    # browser: tiktok-uploader ile tarayıcıdan, denetim beklemeden herkese açık (çerez gerekir)
+    # api: resmi Content Posting API (denetim onaylanana kadar sadece gizli paylaşım)
+    method: browser
+    headless: true          # TikTok engellerse false yap (ekranlı sunucu / xvfb gerekir)
+    visibility: everyone
   min_gap_minutes: 45       # aynı platformda iki yükleme arası
 
 paths:

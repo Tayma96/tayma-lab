@@ -7,9 +7,22 @@ from pathlib import Path
 from . import captions, download, editor, highlights, metadata, transcribe
 from .config import env
 from .db import DB
+from .facecam import FacecamCache
 from .twitch import Twitch, rank_clips
 
 log = logging.getLogger(__name__)
+_FACECAMS: FacecamCache | None = None
+
+
+def resolve_facecam(cfg: dict, broadcaster: str, src: Path) -> dict | None:
+    """Önce config.yaml'daki elle girilmiş konum, yoksa otomatik tespit (render.auto_facecam)."""
+    global _FACECAMS
+    manual = cfg["facecams"].get(broadcaster.lower())
+    if manual or not cfg["render"].get("auto_facecam"):
+        return manual
+    if _FACECAMS is None:
+        _FACECAMS = FacecamCache(data_dir(cfg) / "facecams.json")
+    return _FACECAMS.get(broadcaster, src)
 
 
 def data_dir(cfg: dict) -> Path:
@@ -35,20 +48,16 @@ def discover(cfg: dict, db: DB) -> int:
 
 
 def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int, src: Path,
-            start: float | None = None, duration: float | None = None) -> tuple[Path, dict]:
+            hook_hint: str = "") -> tuple[Path, dict]:
     """Tek bir kaynak videodan dikey klip + meta veri üretir."""
     dd = data_dir(cfg)
     r = cfg["render"]
     words: list[transcribe.Word] = []
     if r["captions"]:
         words = transcribe.transcribe(src, r["whisper_model"], cfg["discovery"].get("language"))
-        if start is not None:  # VOD kesiti: kelime zamanlarını kesite göre kaydır
-            end = start + (duration or 0)
-            words = [transcribe.Word(w.start - start, w.end - start, w.text) for w in words
-                     if start <= w.start < end]
-    meta = metadata.generate(broadcaster, title, transcribe.plain_text(words), views, cfg)
-    facecam = cfg["facecams"].get(broadcaster.lower())
-    total = duration or editor.probe_duration(src)
+    meta = metadata.generate(broadcaster, title or hook_hint, transcribe.plain_text(words), views, cfg)
+    facecam = resolve_facecam(cfg, broadcaster, src)
+    total = editor.probe_duration(src)
     ass = dd / "tmp" / f"{clip_id}.ass"
     ass.write_text(captions.build_ass(
         words, total,
@@ -56,7 +65,7 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
         credit=f"twitch.tv/{broadcaster.lower()}" if r["credit"] else None,
         caption_y=editor.caption_y(facecam)), encoding="utf-8")
     out = dd / "out" / f"{clip_id}.mp4"
-    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam, start=start, duration=duration)
+    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam)
     return out, meta
 
 
@@ -77,22 +86,43 @@ def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
     return done
 
 
+def vod_candidates(cfg: dict, audio: Path, key: str, top_k: int, length: int) -> list[dict]:
+    """Ses zirvelerinden top_k'nın 3 katı aday çıkarır, her adayın sesini yazıya döker ve
+    Claude'a viral potansiyele göre sıralatır. İlk top_k aday döner."""
+    dd = data_dir(cfg)
+    windows = highlights.pick_windows(highlights.loudness_per_second(audio), length=length, top_k=top_k * 3)
+    cands = []
+    for i, (start, end, score) in enumerate(windows):
+        text = ""
+        if cfg["render"]["captions"]:
+            piece = highlights.cut_audio(audio, start, end, dd / "tmp" / f"{key}_{start}.wav")
+            text = transcribe.plain_text(transcribe.transcribe(piece, cfg["render"]["whisper_model"],
+                                                               cfg["discovery"].get("language")))
+        cands.append({"index": i, "start": start, "end": end, "loud_score": score, "transcript": text})
+    ranked = highlights.rank_with_claude(cands, cfg)
+    for c in ranked[:top_k]:
+        log.info("Aday %ss-%ss viral=%s %s", c["start"], c["end"], c.get("viral_score", "-"), c.get("reason", ""))
+    return ranked[:top_k]
+
+
 def process_vod(cfg: dict, db: DB, url: str, broadcaster: str, top_k: int = 5, length: int = 30) -> int:
-    """Uzun bir yayından (VOD) ses zirvelerine göre kesitler çıkarır."""
+    """Uzun bir yayından (VOD) ses zirveleri + Claude viral puanına göre kesitler çıkarır."""
     dd = data_dir(cfg)
     key = "vod_" + "".join(ch for ch in url if ch.isalnum())[-24:]
     audio = download.download_audio(url, dd / "raw", key)
-    windows = highlights.pick_windows(highlights.loudness_per_second(audio), length=length, top_k=top_k)
-    log.info("VOD'da %d öne çıkan an bulundu", len(windows))
+    picks = vod_candidates(cfg, audio, key, top_k, length)
+    log.info("VOD'da %d öne çıkan an seçildi", len(picks))
     done = 0
-    for start, end, score in windows:
+    for c in picks:
+        start, end = c["start"], c["end"]
         clip_id = f"{key}_{start}"
-        if not db.add_clip({"id": clip_id, "broadcaster": broadcaster, "title": "", "url": url,
-                            "score": score, "duration": end - start}):
+        if not db.add_clip({"id": clip_id, "broadcaster": broadcaster, "title": c.get("hook", ""), "url": url,
+                            "score": c.get("viral_score", c["loud_score"]), "duration": end - start}):
             continue
         try:
             src = download.download_section(url, dd / "raw", clip_id, start, end)
-            out, meta = produce(cfg, clip_id=clip_id, broadcaster=broadcaster, title="", views=0, src=src)
+            out, meta = produce(cfg, clip_id=clip_id, broadcaster=broadcaster, title="", views=0, src=src,
+                                hook_hint=c.get("hook", ""))
             db.mark_rendered(clip_id, str(out), meta)
             done += 1
         except Exception as e:
@@ -104,10 +134,11 @@ def process_vod(cfg: dict, db: DB, url: str, broadcaster: str, top_k: int = 5, l
 def upload_pending(cfg: dict, db: DB) -> int:
     import json
 
-    from .uploaders import tiktok, youtube
+    from .uploaders import tiktok, tiktok_browser, youtube
 
-    uploaders = {"youtube": youtube.upload, "tiktok": tiktok.upload}
     up = cfg["upload"]
+    tiktok_fn = tiktok_browser.upload if up["tiktok"].get("method") == "browser" else tiktok.upload
+    uploaders = {"youtube": youtube.upload, "tiktok": tiktok_fn}
     count = 0
     for platform, fn in uploaders.items():
         pcfg = up[platform]
@@ -125,4 +156,5 @@ def upload_pending(cfg: dict, db: DB) -> int:
                 log.exception("%s yükleme hatası: %s", platform, row["id"])
                 db.record_upload(row["id"], platform, "failed", detail=str(e)[:1000])
                 break  # yetki/kota sorunlarında aynı turda tekrar tekrar deneme
+    tiktok_browser.close()
     return count
