@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 
 log = logging.getLogger(__name__)
 
-SYSTEM = """You write metadata for short vertical gaming clips (YouTube Shorts and TikTok) from GTA 6 streams.
-Write in English. Make titles curiosity-driven and punchy, but never misleading: only describe what
+INTRO = "You write metadata for short vertical gaming clips (YouTube Shorts and TikTok) from GTA 6 streams.\n"
+RULES = """Write the title, hook, description and hashtags in English. Make titles curiosity-driven and punchy, but never misleading: only describe what
 actually happens in the clip, based on the clip title and transcript you are given.
 Never pretend to be the streamer; the clip is credited to them.
 
@@ -18,6 +18,7 @@ Fields:
 - hook: 2 to 6 words shown as big on-screen text in the first seconds, no emoji.
 - description: 1 to 3 short sentences, must contain the credit line "Streamer: twitch.tv/<name>".
 - hashtags: 5 to 8 tags without the # sign; always include GTA6 and the streamer's name."""
+SYSTEM = INTRO + RULES
 
 
 class ClipMeta(BaseModel):

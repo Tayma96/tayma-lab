@@ -13,8 +13,11 @@ def probe_duration(path: Path) -> float:
     return float(json.loads(res.stdout)["format"]["duration"])
 
 
-def filter_graph(zoom: float = 1.0, facecam: dict | None = None, subs: str | None = None) -> str:
-    """Saf fonksiyon: ffmpeg filter_complex metnini üretir. Çıkış etiketi [v]."""
+def filter_graph(zoom: float = 1.0, facecam: dict | None = None, subs: str | None = None,
+                 progress_duration: float | None = None) -> str:
+    """Saf fonksiyon: ffmpeg filter_complex metnini üretir. Çıkış etiketi [v].
+    progress_duration verilirse altta soldan sağa dolan sarı ilerleme çubuğu eklenir
+    (izleyiciye 'az kaldı' hissi verir, izlenme süresini artırır)."""
     z = max(1.0, float(zoom))
     if facecam:
         x, y, w, h = (float(facecam[k]) for k in ("x", "y", "w", "h"))
@@ -32,9 +35,15 @@ def filter_graph(zoom: float = 1.0, facecam: dict | None = None, subs: str | Non
             "[bg][fg]overlay=(W-w)/2:(H-h)/2[v0]"
         )
     if subs:
-        graph += f";[v0]subtitles={subs}[v]"
+        graph += f";[v0]subtitles={subs}[v1]"
     else:
-        graph += ";[v0]null[v]"
+        graph += ";[v0]null[v1]"
+    if progress_duration:
+        d = max(0.1, float(progress_duration))
+        graph += (f";color=c=0xFFD400:s=1080x12:r=30[bar];"
+                  f"[v1][bar]overlay=x='-w+w*t/{d:.3f}':y=H-h:shortest=1[v]")
+    else:
+        graph += ";[v1]null[v]"
     return graph
 
 
@@ -45,7 +54,7 @@ def caption_y(facecam: dict | None) -> int:
 
 
 def render(src: Path, out: Path, *, ass_path: Path | None, zoom: float, facecam: dict | None,
-           start: float | None = None, duration: float | None = None) -> Path:
+           start: float | None = None, duration: float | None = None, progress: bool = False) -> Path:
     # subtitles filtresi yol kaçışında sorun çıkarmasın diye ffmpeg'i .ass'in klasöründe çalıştırıyoruz
     cwd = ass_path.parent if ass_path else None
     cmd = ["ffmpeg", "-y", "-loglevel", "error"]
@@ -55,7 +64,8 @@ def render(src: Path, out: Path, *, ass_path: Path | None, zoom: float, facecam:
     if duration is not None:
         cmd += ["-t", f"{duration:.2f}"]
     cmd += [
-        "-filter_complex", filter_graph(zoom, facecam, ass_path.name if ass_path else None),
+        "-filter_complex", filter_graph(zoom, facecam, ass_path.name if ass_path else None,
+                                        (duration or probe_duration(src) - (start or 0)) if progress else None),
         "-map", "[v]", "-map", "0:a?",
         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",

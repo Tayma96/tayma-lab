@@ -8,10 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-import secrets
 import time
-import urllib.parse
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import requests
@@ -47,32 +44,12 @@ def _token_request(data: dict) -> dict:
 
 def authorize() -> None:
     """Tarayıcıda TikTok girişi yapılır, kod localhost'a döner ve token kaydedilir."""
+    from ..oauth_local import capture_code
+
     redirect = env("TIKTOK_REDIRECT_URI", "http://localhost:8765/callback")
-    state = secrets.token_urlsafe(16)
-    url = "https://www.tiktok.com/v2/auth/authorize/?" + urllib.parse.urlencode({
-        "client_key": env("TIKTOK_CLIENT_KEY"), "scope": SCOPES, "response_type": "code",
-        "redirect_uri": redirect, "state": state})
-    print(f"Bu adresi tarayıcıda aç:\n{url}")
-    result: dict = {}
-
-    class Handler(BaseHTTPRequestHandler):
-        def do_GET(self):  # noqa: N802
-            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            result.update({k: v[0] for k, v in q.items()})
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write("Tamam, terminale dönebilirsin.".encode())
-
-        def log_message(self, *a):
-            pass
-
-    port = urllib.parse.urlparse(redirect).port or 8765
-    server = HTTPServer(("0.0.0.0", port), Handler)
-    while "code" not in result and "error" not in result:
-        server.handle_request()
-    if result.get("state") != state or "code" not in result:
-        raise RuntimeError(f"TikTok yetkilendirme başarısız: {result}")
-    _save(_token_request({"code": result["code"], "grant_type": "authorization_code", "redirect_uri": redirect}))
+    code = capture_code("https://www.tiktok.com/v2/auth/authorize/", {
+        "client_key": env("TIKTOK_CLIENT_KEY"), "scope": SCOPES, "response_type": "code"}, redirect)
+    _save(_token_request({"code": code, "grant_type": "authorization_code", "redirect_uri": redirect}))
     print("TikTok yetkilendirmesi kaydedildi.")
 
 

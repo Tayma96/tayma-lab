@@ -1,11 +1,15 @@
 """Twitch Helix API: GTA 6 kategorisindeki en çok izlenen klipleri ve canlı yayınları bulur."""
 from __future__ import annotations
 
+import json
+import logging
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import requests
 
+log = logging.getLogger(__name__)
 HELIX = "https://api.twitch.tv/helix"
 
 
@@ -71,10 +75,99 @@ class Twitch:
         return out
 
 
-def rank_clips(clips: list[dict], top_streamers: list[str], cfg: dict) -> list[dict]:
-    """Klipleri filtreler ve puanlar. Saf fonksiyon (test edilebilir)."""
+class TwitchUser:
+    """Kullanıcı yetkili Twitch istemcisi: canlı yayından klip oluşturmak için (clips:edit).
+    Klip, çağrıldığı andan önceki ~30 saniyeyi kapsar ve senin hesabın adına oluşturulur."""
+
+    SCOPES = "clips:edit"
+
+    def __init__(self, client_id: str, client_secret: str, token_file: str | Path):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.token_file = Path(token_file)
+
+    @classmethod
+    def from_env(cls) -> "TwitchUser":
+        from .config import env
+        return cls(env("TWITCH_CLIENT_ID"), env("TWITCH_CLIENT_SECRET"),
+                   env("TWITCH_USER_TOKEN_FILE", "secrets/twitch_user_token.json"))
+
+    def available(self) -> bool:
+        return self.token_file.exists()
+
+    def authorize(self) -> None:
+        from .config import env
+        from .oauth_local import capture_code
+
+        redirect = env("TWITCH_REDIRECT_URI", "http://localhost:8767/callback")
+        code = capture_code("https://id.twitch.tv/oauth2/authorize", {
+            "client_id": self.client_id, "response_type": "code", "scope": self.SCOPES}, redirect)
+        self._save(self._token({"code": code, "grant_type": "authorization_code", "redirect_uri": redirect}))
+        print("Twitch kullanıcı yetkisi kaydedildi (canlı klip oluşturma açık).")
+
+    def _token(self, data: dict) -> dict:
+        r = requests.post("https://id.twitch.tv/oauth2/token", timeout=30, data={
+            "client_id": self.client_id, "client_secret": self.client_secret, **data})
+        r.raise_for_status()
+        return r.json()
+
+    def _save(self, tok: dict) -> None:
+        tok["obtained_at"] = time.time()
+        self.token_file.parent.mkdir(parents=True, exist_ok=True)
+        self.token_file.write_text(json.dumps(tok, indent=2))
+
+    def _access(self, force_refresh: bool = False) -> str:
+        if not self.token_file.exists():
+            raise RuntimeError("Twitch kullanıcı yetkisi yok: `gta6clips auth twitch`")
+        tok = json.loads(self.token_file.read_text())
+        if force_refresh or time.time() > tok["obtained_at"] + tok.get("expires_in", 0) - 300:
+            tok = self._token({"grant_type": "refresh_token", "refresh_token": tok["refresh_token"]})
+            self._save(tok)
+        return tok["access_token"]
+
+    def _req(self, method: str, path: str, params: dict) -> requests.Response:
+        for attempt in range(2):
+            r = requests.request(method, f"{HELIX}{path}", params=params, timeout=30, headers={
+                "Client-Id": self.client_id, "Authorization": f"Bearer {self._access(force_refresh=attempt > 0)}"})
+            if r.status_code != 401:
+                return r
+        return r
+
+    def create_clip(self, broadcaster_id: str) -> str | None:
+        """Canlı yayında klip oluşturur, klip id'si döner. Yayıncı klibi kapattıysa None."""
+        r = self._req("POST", "/clips", {"broadcaster_id": broadcaster_id, "has_delay": "true"})
+        if r.status_code in (403, 404):
+            log.info("Klip oluşturulamadı (%s): %s", broadcaster_id, r.text[:200])
+            return None
+        r.raise_for_status()
+        data = r.json().get("data", [])
+        return data[0]["id"] if data else None
+
+    def get_clips(self, ids: list[str]) -> list[dict]:
+        if not ids:
+            return []
+        r = self._req("GET", "/clips", {"id": ids})
+        r.raise_for_status()
+        return r.json().get("data", [])
+
+
+def clip_velocity(view_count: int, created_at: str | None, now: datetime | None = None) -> float:
+    """Saat başına izlenme (en az 1 saatlik yaşla). Yeni ama hızla izlenen klip, eski popülerden değerli."""
+    now = now or datetime.now(timezone.utc)
+    if not created_at:
+        return float(view_count)
+    born = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    hours = max(1.0, (now - born).total_seconds() / 3600)
+    return view_count / hours ** 0.8
+
+
+def rank_clips(clips: list[dict], top_streamers: list[str], cfg: dict,
+               performance: dict[str, float] | None = None, now: datetime | None = None) -> list[dict]:
+    """Klipleri filtreler ve puanlar. Saf fonksiyon (test edilebilir).
+    Puan = izlenme hızı x canlı izleyici sıralaması bonusu x geçmiş performans çarpanı."""
     d = cfg["discovery"]
     blocked = set(cfg.get("blocklist") or [])
+    performance = performance or {}
     boost_rank = {name.lower(): i for i, name in enumerate(top_streamers[: d["top_streamers_boost"]])}
     seen_vods: set[tuple] = set()
     ranked = []
@@ -92,9 +185,10 @@ def rank_clips(clips: list[dict], top_streamers: list[str], cfg: dict) -> list[d
             if key in seen_vods:
                 continue
             seen_vods.add(key)
-        score = float(c["view_count"])
+        score = clip_velocity(c["view_count"], c.get("created_at"), now)
         if login in boost_rank:
             score *= 1.5 + (len(boost_rank) - boost_rank[login]) / max(len(boost_rank), 1)
+        score *= performance.get(login, 1.0)
         ranked.append({
             "id": c["id"],
             "broadcaster": c.get("broadcaster_name") or login,

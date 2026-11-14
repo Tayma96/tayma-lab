@@ -62,9 +62,9 @@ def test_caption_grouping_and_ass():
 
 def test_filter_graph_variants():
     g = editor.filter_graph(1.2, None, "a.ass")
-    assert "boxblur" in g and "subtitles=a.ass[v]" in g
-    g2 = editor.filter_graph(1.0, {"x": 0, "y": 0, "w": 0.25, "h": 0.3}, None)
-    assert "vstack" in g2 and g2.endswith("null[v]")
+    assert "boxblur" in g and "subtitles=a.ass[v1]" in g and g.endswith("[v1]null[v]")
+    g2 = editor.filter_graph(1.0, {"x": 0, "y": 0, "w": 0.25, "h": 0.3}, None, progress_duration=20)
+    assert "vstack" in g2 and "w*t/20.000" in g2 and g2.endswith("[v]")
 
 
 def test_pick_windows_finds_spikes():

@@ -12,7 +12,8 @@ from pathlib import Path
 from ..config import env
 
 log = logging.getLogger(__name__)
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
+          "https://www.googleapis.com/auth/youtube.readonly"]  # izlenme istatistikleri için
 
 
 def _credentials(interactive: bool = False):
@@ -69,3 +70,16 @@ def upload(video: Path, meta: dict, cfg: dict) -> str:
     video_id = response["id"]
     log.info("YouTube: https://youtube.com/shorts/%s", video_id)
     return video_id
+
+
+def fetch_views(video_ids: list[str]) -> dict[str, int]:
+    """Yüklenen videoların izlenme sayıları (50'şerli gruplar, grup başına 1 kota birimi)."""
+    from googleapiclient.discovery import build
+
+    youtube = build("youtube", "v3", credentials=_credentials(), cache_discovery=False)
+    out: dict[str, int] = {}
+    for i in range(0, len(video_ids), 50):
+        resp = youtube.videos().list(part="statistics", id=",".join(video_ids[i:i + 50])).execute()
+        for item in resp.get("items", []):
+            out[item["id"]] = int(item.get("statistics", {}).get("viewCount", 0))
+    return out

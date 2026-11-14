@@ -1,16 +1,20 @@
 # GTA 6 Klip Otomasyonu
 
-Twitch'te GTA 6 oynayan en çok izlenen yayıncıların en popüler anlarını bulur, bunları dikey
-(9:16) Shorts/TikTok videosuna kurgular, Claude ile başlık/açıklama/hashtag yazar ve YouTube ile
-TikTok'a yükler.
+En çok izlenen GTA 6 yayınlarındaki en iyi anları **anında** yakalar, Claude'a izletip sadece iyi
+olanları seçer, en güçlü bölümüne kırpar, dikey (9:16) videoya kurgular ve YouTube Shorts ile
+TikTok'a en doğru sırayla yükler. Neyin izlendiğini öğrenip kendini ayarlar.
 
 ```
-Twitch (en çok izlenen klipler + canlı yayın sıralaması)
-  → yt-dlp ile indir
-  → Whisper ile kelime zamanlı döküm
-  → Claude: başlık, açılış kancası, açıklama, hashtag
-  → ffmpeg: 1080x1920, bulanık arka plan veya yüz kamerası düzeni, kelime vurgulu altyazı, kredi
-  → YouTube Shorts + TikTok (günlük limit ve aralıklarla)
+Kaynaklar
+  ├─ Canlı avcı: en büyük 25 yayının sohbetini dinler, sohbet patladığı an Twitch klibi oluşturur
+  ├─ Popüler klipler: izlenme HIZINA ve yayıncının geçmiş performansına göre
+  └─ VOD: ses zirveleri + Claude viral puanı
+→ Whisper döküm
+→ Claude analizi (kareler + konuşma): 1-10 puan, gerçekten GTA 6 mı, en iyi bölüm, başlık/kanca/hashtag
+→ Kalite kapısı: eşiğin altındakiler elenir
+→ Kurgu: 1080x1920, yüz kamerası/bulanık düzen, kelime vurgulu altyazı, kanca, ilerleme çubuğu, marka
+→ Yayın: kalite > tazelik önceliği, yoğun saatler, günlük limitler
+→ İzlenmeleri çek → iyi giden yayıncılara ağırlık ver
 ```
 
 ## Kurulum
@@ -26,7 +30,8 @@ cp .env.example .env      # anahtarları doldur
 ### Anahtarlar
 | Ne | Nereden | Not |
 |---|---|---|
-| `TWITCH_CLIENT_ID/SECRET` | dev.twitch.tv/console/apps | Hemen alınır |
+| `TWITCH_CLIENT_ID/SECRET` | dev.twitch.tv/console/apps | Hemen alınır. OAuth Redirect URL: `http://localhost:8767/callback` |
+| Twitch kullanıcı yetkisi | `gta6clips auth twitch` | Canlı avcının klip oluşturması için (senin Twitch hesabınla) |
 | `ANTHROPIC_API_KEY` | platform.claude.com | Boşsa şablon başlık kullanılır |
 | YouTube OAuth JSON | Google Cloud Console → YouTube Data API v3 → OAuth client (Desktop) | `secrets/youtube_client_secret.json` |
 | TikTok çerezi | Tarayıcıda giriş → "Get cookies.txt LOCALLY" → `secrets/tiktok_cookies.txt` (ya da `TIKTOK_SESSIONID`) | `method: browser` için |
@@ -40,11 +45,11 @@ gta6clips auth youtube    # tarayıcıda izin ver
 ## Kullanım
 
 ```bash
-gta6clips discover          # yeni popüler klipleri bul
-gta6clips render            # indir + kurgula -> data/out/*.mp4
-gta6clips upload            # YouTube + TikTok
-gta6clips run --loop --interval 30   # hepsini 30 dakikada bir sürekli çalıştır
-gta6clips run --no-upload   # sadece üret, yükleme yapma (kontrol için)
+gta6clips run --loop               # her şey sürekli: canlı avcı + keşif + kurgu + yükleme + istatistik
+gta6clips run --loop --no-upload   # sadece üret (ilk gün kontrol için önerilir)
+gta6clips live                     # sadece canlı avcı
+gta6clips discover / render / upload   # tek tek adımlar
+gta6clips stats                    # izlenmeler + hangi yayıncı iyi gidiyor
 gta6clips status
 
 # Uzun yayından (VOD) ses zirvelerine göre 5 kesit:
@@ -86,7 +91,10 @@ yutu kurulumu: `npm i -g @eat-pray-ai/yutu`, sonra `yutu auth --credential secre
 ## Yapı
 ```
 src/gta6clips/
-  twitch.py       Helix API + klip puanlama/filtreleme
+  live.py         canlı avcı (sohbet patlaması -> Twitch klibi)
+  chat.py         Twitch sohbet istemcisi + patlama dedektörü
+  analyze.py      Claude analizi: kalite puanı, GTA 6 kontrolü, kırpma, metin
+  twitch.py       Helix API, klip oluşturma, hız tabanlı sıralama
   download.py     yt-dlp
   transcribe.py   faster-whisper (kelime zamanları)
   captions.py     ASS altyazı (kelime vurgulu, kanca, kredi)

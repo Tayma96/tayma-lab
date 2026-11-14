@@ -65,8 +65,12 @@ def caption_events(words: list[Word], y: int) -> list[str]:
 
 
 def build_ass(words: list[Word], duration: float, *, hook: str | None, credit: str | None,
-              caption_y: int, hook_y: int = 330, credit_y: int = 1790) -> str:
+              caption_y: int, hook_y: int = 330, credit_y: int = 1790, brand: str | None = None) -> str:
     events = []
+    if brand:
+        # Kanalın adı/logosu: sağ üstte küçük ve yarı saydam, tüm video boyunca
+        events.append(f"Dialogue: 1,{ts(0)},{ts(duration)},Credit,,0,0,0,,"
+                      rf"{{\an9\pos({W - 40},70)\alpha&H40&\fs38}}{escape(brand)}")
     if hook:
         # Açılış kancası ilk 3.5 saniye ekranda
         events.append(f"Dialogue: 1,{ts(0)},{ts(min(3.5, duration))},Hook,,0,0,0,,"

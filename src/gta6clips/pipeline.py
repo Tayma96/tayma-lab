@@ -1,10 +1,17 @@
-"""Uçtan uca akış: keşfet -> indir -> döküm -> meta veri -> kurgu -> yükle."""
+"""Uçtan uca akış:
+  kaynaklar (Twitch popüler klipler + canlı sohbet patlamaları + VOD)
+  -> indir -> döküm -> Claude analizi (kalite kapısı + kırpma + metin)
+  -> kurgu -> öncelik sırasıyla yükle -> izlenmeleri çek -> yayıncı ağırlıklarını güncelle
+"""
 from __future__ import annotations
 
+import json
 import logging
+import threading
+import time
 from pathlib import Path
 
-from . import captions, download, editor, highlights, metadata, transcribe
+from . import analyze, captions, download, editor, highlights, transcribe
 from .config import env
 from .db import DB
 from .facecam import FacecamCache
@@ -12,6 +19,14 @@ from .twitch import Twitch, rank_clips
 
 log = logging.getLogger(__name__)
 _FACECAMS: FacecamCache | None = None
+
+
+def data_dir(cfg: dict) -> Path:
+    return Path(cfg["paths"]["data_dir"])
+
+
+def open_db(cfg: dict) -> DB:
+    return DB(data_dir(cfg) / "clips.db")
 
 
 def resolve_facecam(cfg: dict, broadcaster: str, src: Path) -> dict | None:
@@ -25,14 +40,7 @@ def resolve_facecam(cfg: dict, broadcaster: str, src: Path) -> dict | None:
     return _FACECAMS.get(broadcaster, src)
 
 
-def data_dir(cfg: dict) -> Path:
-    return Path(cfg["paths"]["data_dir"])
-
-
-def open_db(cfg: dict) -> DB:
-    return DB(data_dir(cfg) / "clips.db")
-
-
+# ---------------------------------------------------------------- keşif
 def discover(cfg: dict, db: DB) -> int:
     tw = Twitch(env("TWITCH_CLIENT_ID"), env("TWITCH_CLIENT_SECRET"))
     d = cfg["discovery"]
@@ -41,32 +49,52 @@ def discover(cfg: dict, db: DB) -> int:
     top_streamers = [s["user_login"] for s in streams]
     if top_streamers:
         log.info("Şu an en çok izlenen GTA 6 yayıncıları: %s", ", ".join(top_streamers[:10]))
-    ranked = rank_clips(tw.top_clips(gid, d["lookback_hours"]), top_streamers, cfg)
+    ranked = rank_clips(tw.top_clips(gid, d["lookback_hours"]), top_streamers, cfg, db.streamer_performance())
     added = sum(db.add_clip(c) for c in ranked[: d["max_clips_per_run"] * 3])
     log.info("Keşif: %d uygun klip, %d yeni eklendi", len(ranked), added)
     return added
 
 
+# ---------------------------------------------------------------- üretim
+def shift_words(words: list[transcribe.Word], start: float, end: float) -> list[transcribe.Word]:
+    return [transcribe.Word(w.start - start, w.end - start, w.text) for w in words if start <= w.start < end]
+
+
 def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int, src: Path,
-            hook_hint: str = "") -> tuple[Path, dict]:
-    """Tek bir kaynak videodan dikey klip + meta veri üretir."""
+            hook_hint: str = "") -> tuple[Path | None, dict]:
+    """Analiz eder; kalite kapısından geçerse kırpıp dikey video üretir.
+    Dönüş: (video yolu veya reddedildiyse None, analiz sözlüğü)"""
     dd = data_dir(cfg)
-    r = cfg["render"]
+    r, q = cfg["render"], cfg["quality"]
+    total = editor.probe_duration(src)
     words: list[transcribe.Word] = []
     if r["captions"]:
         words = transcribe.transcribe(src, r["whisper_model"], cfg["discovery"].get("language"))
-    meta = metadata.generate(broadcaster, title or hook_hint, transcribe.plain_text(words), views, cfg)
+    a = analyze.analyze(src, total, words, broadcaster, title or hook_hint, views, cfg)
+    if not a["is_gta6"] or a["score"] < q["min_score"]:
+        log.info("Elendi [%s] puan=%s gta6=%s: %s", broadcaster, a["score"], a["is_gta6"], a["reason"])
+        return None, a
+
+    start, end = a["best_start"], a["best_end"]
+    trimmed = start > 0.3 or end < total - 0.3
+    words = shift_words(words, start, end) if trimmed else words
+    length = end - start
+    meta = a["meta"]
     facecam = resolve_facecam(cfg, broadcaster, src)
-    total = editor.probe_duration(src)
     ass = dd / "tmp" / f"{clip_id}.ass"
     ass.write_text(captions.build_ass(
-        words, total,
+        words, length,
         hook=meta["hook"] if r["hook"] else None,
         credit=f"twitch.tv/{broadcaster.lower()}" if r["credit"] else None,
-        caption_y=editor.caption_y(facecam)), encoding="utf-8")
+        caption_y=editor.caption_y(facecam),
+        brand=r.get("brand") or None), encoding="utf-8")
     out = dd / "out" / f"{clip_id}.mp4"
-    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam)
-    return out, meta
+    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam,
+                  start=start if trimmed else None, duration=length if trimmed else None,
+                  progress=r.get("progress_bar", True))
+    log.info("Kurgulandı [%s] puan=%s %s (%.0fs%s): %s", broadcaster, a["score"], a["category"], length,
+             f", kırpıldı {start:.0f}-{end:.0f}" if trimmed else "", meta["title"])
+    return out, a
 
 
 def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
@@ -75,11 +103,14 @@ def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
     for row in db.clips_with_status("new", limit):
         try:
             src = download.download_clip(row["url"], data_dir(cfg) / "raw", row["id"])
-            out, meta = produce(cfg, clip_id=row["id"], broadcaster=row["broadcaster"], title=row["title"] or "",
-                                views=row["views"], src=src)
-            db.mark_rendered(row["id"], str(out), meta)
-            log.info("Kurgulandı: %s  [%s] %s", out, row["broadcaster"], meta["title"])
-            done += 1
+            out, a = produce(cfg, clip_id=row["id"], broadcaster=row["broadcaster"], title=row["title"] or "",
+                             views=row["views"], src=src)
+            analysis = {k: v for k, v in a.items() if k != "meta"}
+            if out is None:
+                db.mark_rejected(row["id"], a["score"], a["reason"], analysis)
+            else:
+                db.mark_rendered(row["id"], str(out), a["meta"], a["score"], analysis)
+                done += 1
         except Exception as e:  # tek klip hatası tüm akışı durdurmasın
             log.exception("Klip işlenemedi: %s", row["id"])
             db.mark_failed(row["id"], str(e))
@@ -105,35 +136,38 @@ def vod_candidates(cfg: dict, audio: Path, key: str, top_k: int, length: int) ->
     return ranked[:top_k]
 
 
-def process_vod(cfg: dict, db: DB, url: str, broadcaster: str, top_k: int = 5, length: int = 30) -> int:
+def process_vod(cfg: dict, db: DB, url: str, broadcaster: str, top_k: int = 5, length: int = 40) -> int:
     """Uzun bir yayından (VOD) ses zirveleri + Claude viral puanına göre kesitler çıkarır."""
     dd = data_dir(cfg)
     key = "vod_" + "".join(ch for ch in url if ch.isalnum())[-24:]
     audio = download.download_audio(url, dd / "raw", key)
     picks = vod_candidates(cfg, audio, key, top_k, length)
-    log.info("VOD'da %d öne çıkan an seçildi", len(picks))
     done = 0
     for c in picks:
         start, end = c["start"], c["end"]
         clip_id = f"{key}_{start}"
         if not db.add_clip({"id": clip_id, "broadcaster": broadcaster, "title": c.get("hook", ""), "url": url,
-                            "score": c.get("viral_score", c["loud_score"]), "duration": end - start}):
+                            "score": c.get("viral_score", c["loud_score"]), "duration": end - start,
+                            "source": "vod"}):
             continue
         try:
             src = download.download_section(url, dd / "raw", clip_id, start, end)
-            out, meta = produce(cfg, clip_id=clip_id, broadcaster=broadcaster, title="", views=0, src=src,
-                                hook_hint=c.get("hook", ""))
-            db.mark_rendered(clip_id, str(out), meta)
-            done += 1
+            out, a = produce(cfg, clip_id=clip_id, broadcaster=broadcaster, title="", views=0, src=src,
+                             hook_hint=c.get("hook", ""))
+            analysis = {k: v for k, v in a.items() if k != "meta"}
+            if out is None:
+                db.mark_rejected(clip_id, a["score"], a["reason"], analysis)
+            else:
+                db.mark_rendered(clip_id, str(out), a["meta"], a["score"], analysis)
+                done += 1
         except Exception as e:
             log.exception("VOD kesiti işlenemedi: %s", clip_id)
             db.mark_failed(clip_id, str(e))
     return done
 
 
+# ---------------------------------------------------------------- yayın
 def upload_pending(cfg: dict, db: DB) -> int:
-    import json
-
     from .uploaders import tiktok, tiktok_browser, youtube
 
     up = cfg["upload"]
@@ -144,13 +178,13 @@ def upload_pending(cfg: dict, db: DB) -> int:
         pcfg = up[platform]
         if not pcfg.get("enabled"):
             continue
-        for row in db.pending_uploads(platform):
-            if not db.can_upload(platform, pcfg["max_per_day"], up["min_gap_minutes"]):
-                log.info("%s: günlük limit / bekleme süresi doldu, sonraki tura kaldı", platform)
+        for row in db.pending_uploads(platform, max_age_hours=up.get("max_age_hours")):
+            if not db.can_upload(platform, pcfg["max_per_day"], up["min_gap_minutes"], up.get("peak_hours_utc")):
                 break
             try:
                 remote = fn(Path(row["video_path"]), json.loads(row["meta_json"]), cfg)
                 db.record_upload(row["id"], platform, "done", remote)
+                log.info("Yüklendi %s [kalite %s] %s", platform, row.get("quality"), row["id"])
                 count += 1
             except Exception as e:
                 log.exception("%s yükleme hatası: %s", platform, row["id"])
@@ -158,3 +192,62 @@ def upload_pending(cfg: dict, db: DB) -> int:
                 break  # yetki/kota sorunlarında aynı turda tekrar tekrar deneme
     tiktok_browser.close()
     return count
+
+
+def refresh_stats(cfg: dict, db: DB) -> int:
+    """YouTube izlenmelerini çeker; yayıncı çarpanları bir sonraki keşifte kullanılır."""
+    from .uploaders import youtube
+
+    ids = db.youtube_ids_to_check()
+    if not ids:
+        return 0
+    views = youtube.fetch_views(ids)
+    for vid, n in views.items():
+        db.set_views("youtube", vid, n)
+    log.info("İstatistik: %d videonun izlenmesi güncellendi; yayıncı çarpanları: %s",
+             len(views), db.streamer_performance())
+    return len(views)
+
+
+# ---------------------------------------------------------------- sürekli çalışma
+def _loop(name: str, every_s: float, fn, stop: threading.Event) -> None:
+    while not stop.is_set():
+        try:
+            fn()
+        except Exception:
+            log.exception("%s turu başarısız, sonraki turda tekrar denenecek", name)
+        stop.wait(every_s)
+
+
+def run_forever(cfg: dict, upload: bool = True, live: bool = True) -> None:
+    """Her iş kendi iş parçacığında, kendi veritabanı bağlantısıyla:
+    canlı avcı (sürekli) | keşif (15 dk) | kurgu (1 dk) | yükleme (5 dk) | istatistik (3 saat)"""
+    from .live import run_live
+
+    stop = threading.Event()
+    s = cfg["schedule"]
+    jobs = [
+        ("keşif", s["discover_minutes"] * 60, lambda db: discover(cfg, db)),
+        ("kurgu", 60, lambda db: render_pending(cfg, db, 5)),
+    ]
+    if upload:
+        jobs.append(("yükleme", 300, lambda db: upload_pending(cfg, db)))
+        if cfg["upload"]["youtube"].get("enabled"):
+            jobs.append(("istatistik", s["stats_hours"] * 3600, lambda db: refresh_stats(cfg, db)))
+    threads = []
+    for name, every, fn in jobs:
+        def target(name=name, every=every, fn=fn):
+            db = open_db(cfg)
+            _loop(name, every, lambda: fn(db), stop)
+        threads.append(threading.Thread(target=target, name=name, daemon=True))
+    if live and cfg["live"].get("enabled"):
+        threads.append(threading.Thread(target=lambda: run_live(cfg, open_db(cfg), stop), name="canlı", daemon=True))
+    for t in threads:
+        t.start()
+    log.info("Çalışıyor: %s (durdurmak için Ctrl+C)", ", ".join(t.name for t in threads))
+    try:
+        while any(t.is_alive() for t in threads):
+            time.sleep(5)
+    except KeyboardInterrupt:
+        log.info("Durduruluyor...")
+        stop.set()

@@ -6,4 +6,4 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip install --no-cache-dir '.[captions,tiktok-browser]' \
     && playwright install --with-deps chromium
-CMD ["gta6clips", "run", "--loop", "--interval", "30"]
+CMD ["gta6clips", "run", "--loop"]
