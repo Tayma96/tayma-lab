@@ -61,7 +61,7 @@ def shift_words(words: list[transcribe.Word], start: float, end: float) -> list[
 
 
 def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int, src: Path,
-            hook_hint: str = "") -> tuple[Path | None, dict]:
+            hook_hint: str = "", signals: dict | None = None) -> tuple[Path | None, dict]:
     """Analiz eder; kalite kapısından geçerse kırpıp dikey video üretir.
     Dönüş: (video yolu veya reddedildiyse None, analiz sözlüğü)"""
     dd = data_dir(cfg)
@@ -70,7 +70,8 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
     words: list[transcribe.Word] = []
     if r["captions"]:
         words = transcribe.transcribe(src, r["whisper_model"], cfg["discovery"].get("language"))
-    a = analyze.analyze(src, total, words, broadcaster, title or hook_hint, views, cfg)
+    a = analyze.analyze(src, total, words, broadcaster, title or hook_hint, views, cfg, clip_id=clip_id,
+                        signals=signals or {"views": views})
     if not a["is_gta6"] or a["score"] < q["min_score"]:
         log.info("Elendi [%s] puan=%s gta6=%s: %s", broadcaster, a["score"], a["is_gta6"], a["reason"])
         return None, a
@@ -92,7 +93,7 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
     editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam,
                   start=start if trimmed else None, duration=length if trimmed else None,
                   progress=r.get("progress_bar", True))
-    log.info("Kurgulandı [%s] puan=%s %s (%.0fs%s): %s", broadcaster, a["score"], a["category"], length,
+    log.info("Kurgulandı [%s] (%s) puan=%s %s (%.0fs%s): %s", broadcaster, a.get("engine"), a["score"], a["category"], length,
              f", kırpıldı {start:.0f}-{end:.0f}" if trimmed else "", meta["title"])
     return out, a
 
@@ -104,7 +105,8 @@ def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
         try:
             src = download.download_clip(row["url"], data_dir(cfg) / "raw", row["id"])
             out, a = produce(cfg, clip_id=row["id"], broadcaster=row["broadcaster"], title=row["title"] or "",
-                             views=row["views"], src=src)
+                             views=row["views"], src=src,
+                             signals={"views": row["views"], "score": row["score"], "source": row["source"]})
             analysis = {k: v for k, v in a.items() if k != "meta"}
             if out is None:
                 db.mark_rejected(row["id"], a["score"], a["reason"], analysis)
@@ -130,7 +132,7 @@ def vod_candidates(cfg: dict, audio: Path, key: str, top_k: int, length: int) ->
             text = transcribe.plain_text(transcribe.transcribe(piece, cfg["render"]["whisper_model"],
                                                                cfg["discovery"].get("language")))
         cands.append({"index": i, "start": start, "end": end, "loud_score": score, "transcript": text})
-    ranked = highlights.rank_with_claude(cands, cfg)
+    ranked = highlights.rank_with_ai(cands, cfg)
     for c in ranked[:top_k]:
         log.info("Aday %ss-%ss viral=%s %s", c["start"], c["end"], c.get("viral_score", "-"), c.get("reason", ""))
     return ranked[:top_k]
@@ -167,6 +169,26 @@ def process_vod(cfg: dict, db: DB, url: str, broadcaster: str, top_k: int = 5, l
 
 
 # ---------------------------------------------------------------- yayın
+_NOT_READY_LOGGED: set[str] = set()
+
+
+def platform_ready(cfg: dict, platform: str) -> bool:
+    """Giriş bilgisi eklenmemiş platformu atla (kurulum bitene kadar hata yağmuru olmasın)."""
+    if platform == "youtube":
+        ok = Path(env("YOUTUBE_TOKEN_FILE", "secrets/youtube_token.json")).exists()
+        hint = "YOUTUBE_CLIENT_ID / YOUTUBE_CLIENT_SECRET / YOUTUBE_REFRESH_TOKEN secret'larını ekle"
+    elif cfg["upload"]["tiktok"].get("method") == "browser":
+        ok = bool(env("TIKTOK_SESSIONID")) or Path(env("TIKTOK_COOKIES_FILE", "secrets/tiktok_cookies.txt")).exists()
+        hint = "TIKTOK_SESSIONID secret'ını ekle"
+    else:
+        ok = Path(env("TIKTOK_TOKEN_FILE", "secrets/tiktok_token.json")).exists()
+        hint = "gta6clips auth tiktok"
+    if not ok and platform not in _NOT_READY_LOGGED:
+        log.warning("%s yüklemesi atlanıyor: giriş bilgisi yok (%s)", platform, hint)
+        _NOT_READY_LOGGED.add(platform)
+    return ok
+
+
 def upload_pending(cfg: dict, db: DB) -> int:
     from .uploaders import tiktok, tiktok_browser, youtube
 
@@ -176,7 +198,7 @@ def upload_pending(cfg: dict, db: DB) -> int:
     count = 0
     for platform, fn in uploaders.items():
         pcfg = up[platform]
-        if not pcfg.get("enabled"):
+        if not pcfg.get("enabled") or not platform_ready(cfg, platform):
             continue
         for row in db.pending_uploads(platform, max_age_hours=up.get("max_age_hours")):
             if not db.can_upload(platform, pcfg["max_per_day"], up["min_gap_minutes"], up.get("peak_hours_utc")):
@@ -219,13 +241,29 @@ def _loop(name: str, every_s: float, fn, stop: threading.Event) -> None:
         stop.wait(every_s)
 
 
-def run_forever(cfg: dict, upload: bool = True, live: bool = True) -> None:
+def recover_missing_videos(db: DB) -> int:
+    """Bulut sunucusu (GitHub Actions) her çalıştırmada temiz başlar: kurgulanmış ama henüz yüklenmemiş
+    videoların dosyası kaybolduysa klibi yeniden kurgu kuyruğuna al."""
+    n = 0
+    for row in db.clips_with_status("rendered", 10000):
+        if not row["video_path"] or not Path(row["video_path"]).exists():
+            db.conn.execute("UPDATE clips SET status='new' WHERE id=?", (row["id"],))
+            n += 1
+    db.conn.commit()
+    if n:
+        log.info("%d klibin videosu yoktu, yeniden kurgulanacak", n)
+    return n
+
+
+def run_forever(cfg: dict, upload: bool = True, live: bool = True, max_minutes: float | None = None) -> None:
     """Her iş kendi iş parçacığında, kendi veritabanı bağlantısıyla:
     canlı avcı (sürekli) | keşif (15 dk) | kurgu (1 dk) | yükleme (5 dk) | istatistik (3 saat)"""
     from .live import run_live
 
     stop = threading.Event()
     s = cfg["schedule"]
+    recover_missing_videos(open_db(cfg))
+    deadline = time.time() + max_minutes * 60 if max_minutes else None
     jobs = [
         ("keşif", s["discover_minutes"] * 60, lambda db: discover(cfg, db)),
         ("kurgu", 60, lambda db: render_pending(cfg, db, 5)),
@@ -247,6 +285,12 @@ def run_forever(cfg: dict, upload: bool = True, live: bool = True) -> None:
     log.info("Çalışıyor: %s (durdurmak için Ctrl+C)", ", ".join(t.name for t in threads))
     try:
         while any(t.is_alive() for t in threads):
+            if deadline and time.time() >= deadline:
+                log.info("Süre doldu (%s dk), durum kaydedilmek üzere duruluyor", max_minutes)
+                stop.set()
+                for t in threads:
+                    t.join(timeout=120)  # yarım kalan kurgu/yükleme bitsin
+                return
             time.sleep(5)
     except KeyboardInterrupt:
         log.info("Durduruluyor...")

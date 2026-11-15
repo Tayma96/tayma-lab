@@ -1,4 +1,4 @@
-# Kopyala: cp config.example.yaml config.yaml
+# Ayarlar. Telefondan düzenle: GitHub'da bu dosyayı aç > kalem simgesi > Commit changes.
 
 game_name: "Grand Theft Auto VI"
 
@@ -23,10 +23,19 @@ live:
   cooldown_seconds: 120     # aynı kanalda iki klip arası
   max_clips_per_hour: 20
 
-# --- Kalite kapısı: Claude her klibe görüntü + konuşmadan 1-10 puan verir ---
+# --- Yapay zeka: TAMAMEN ÜCRETSİZ ---
+# github: GitHub Models (GitHub Actions'ta anahtarsız, ücretsiz; günlük sınır dolunca sezgisele düşer)
+# none:   yapay zeka yok, ücretsiz sinyallerle puanlama (izlenme hızı, sohbet, ses, hareket, konuşma)
+# claude: ÜCRETLİ, kullanma
+ai:
+  provider: github
+  github_model: openai/gpt-4o-mini
+  max_images: 4
+
+# --- Kalite kapısı: her klip 1-10 puanlanır, eşiğin altı yüklenmez ---
 quality:
   min_score: 6              # altı hiç kurgulanmaz/yüklenmez. Hacim istersen 5, seçicilik istersen 7
-  frames: 6                 # Claude'a gösterilecek kare sayısı
+  frames: 6                 # yapay zekaya gösterilecek kare sayısı
   effort: medium
 
 blocklist: []

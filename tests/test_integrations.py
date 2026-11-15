@@ -85,8 +85,6 @@ def test_tiktok_browser_missing_session(monkeypatch, tmp_path):
         tiktok_browser.upload(tmp_path / "x.mp4", {"title": "t", "hashtags": []}, _merge(DEFAULTS, {}))
 
 
-def test_rank_with_claude_without_key_keeps_order(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+def test_rank_with_ai_without_provider_keeps_order():
     c = [{"index": 0, "start": 1, "end": 31, "transcript": "a"}, {"index": 1, "start": 50, "end": 80, "transcript": ""}]
-    assert highlights.rank_with_claude(c, _merge(DEFAULTS, {})) == c
+    assert highlights.rank_with_ai(c, _merge(DEFAULTS, {"ai": {"provider": "none"}})) == c

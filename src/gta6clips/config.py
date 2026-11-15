@@ -31,6 +31,13 @@ DEFAULTS: dict[str, Any] = {
         "brand": "",
     },
     "metadata": {"model": "claude-opus-5-5", "effort": "low"},
+    "ai": {
+        "provider": "github",              # github (ücretsiz) | none | ollama | claude (ücretli)
+        "github_model": "openai/gpt-4o-mini",
+        "max_images": 4,
+        "ollama_url": "http://localhost:11434",
+        "ollama_model": "qwen2.5vl:7b",
+    },
     "quality": {"min_score": 6, "frames": 6, "effort": "medium"},
     "live": {
         "enabled": True,
@@ -76,6 +83,20 @@ def load_config(path: str | os.PathLike = "config.yaml") -> dict[str, Any]:
     for sub in ("raw", "out", "tmp"):
         (data_dir / sub).mkdir(parents=True, exist_ok=True)
     return cfg
+
+
+def bootstrap_secrets() -> None:
+    """Bilgisayarsız kurulum: GitHub Secrets'tan gelen ortam değişkenlerini, kodun beklediği token
+    dosyalarına çevirir (dosya zaten varsa dokunmaz; yenilenmiş token korunur)."""
+    import json
+
+    yt = Path(env("YOUTUBE_TOKEN_FILE", "secrets/youtube_token.json"))
+    if not yt.exists() and env("YOUTUBE_REFRESH_TOKEN") and env("YOUTUBE_CLIENT_ID"):
+        yt.parent.mkdir(parents=True, exist_ok=True)
+        yt.write_text(json.dumps({
+            "type": "authorized_user", "client_id": env("YOUTUBE_CLIENT_ID"),
+            "client_secret": env("YOUTUBE_CLIENT_SECRET"), "refresh_token": env("YOUTUBE_REFRESH_TOKEN"),
+            "token_uri": "https://oauth2.googleapis.com/token"}))
 
 
 def env(name: str, default: str | None = None) -> str | None:

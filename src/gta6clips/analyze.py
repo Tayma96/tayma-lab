@@ -1,27 +1,33 @@
-"""Claude ile klip analizi: karelere bakar + konuşmayı okur, tek çağrıda
-  - kalite puanı (1-10) ve gerçekten GTA 6 olup olmadığı,
-  - klibin en güçlü bölümü (kırpma önerisi),
-  - başlık, ekran kancası, açıklama, hashtag
-üretir. Düşük puanlı klipler hiç kurgulanmaz/yüklenmez."""
+"""Klip analizi: kalite puanı (1-10), GTA 6 kontrolü, en iyi bölüm (kırpma) ve başlık/kanca/hashtag.
+
+Önce config'teki yapay zeka sağlayıcısı denenir (varsayılan: ücretsiz yerel Ollama).
+Ulaşılamazsa ya da ai.provider=none ise tamamen ÜCRETSİZ sezgisel analiz yapılır:
+  - popülerlik  : izlenme hızı ya da canlı sohbet patlamasının gücü
+  - ses         : klibin içindeki ses zirvesi (bağırma/gülme/patlama)
+  - hareket     : kareler arası değişim (menü, yükleme ekranı, AFK anlarını eler)
+  - konuşma     : saniye başına kelime
+"""
 from __future__ import annotations
 
-import base64
+import hashlib
 import logging
+import math
+import re
 import subprocess
 from pathlib import Path
 
+import numpy as np
 from pydantic import BaseModel, Field
 
-from . import metadata
-from .config import env
-from .highlights import VIRALITY_SYSTEM
+from . import llm, metadata
+from .highlights import VIRALITY_SYSTEM, loudness_per_second, pick_windows
 from .transcribe import Word
 
 log = logging.getLogger(__name__)
 
 SYSTEM = VIRALITY_SYSTEM + """
 
-You now review ONE clip. You see evenly spaced frames (with timestamps) and a timestamped transcript.
+You now review ONE clip. You see evenly spaced frames (timestamps listed in the text) and a timestamped transcript.
 Return:
 - score 1-10: 9-10 = would go viral, 7-8 = strong, 5-6 = ok filler, 1-4 = do not post.
   Be strict: most clips are 4-7. Silence, menus, loading screens, unclear context, or nothing happening score low.
@@ -49,6 +55,7 @@ class ClipAnalysis(BaseModel):
     hashtags: list[str]
 
 
+# ------------------------------------------------------------------ yardımcılar
 def extract_frames(video: Path, duration: float, n: int = 6, width: int = 640) -> list[tuple[float, bytes]]:
     frames = []
     for i in range(n):
@@ -77,7 +84,7 @@ def timed_transcript(words: list[Word], every: float = 3.0) -> str:
 
 
 def clamp_trim(start: float, end: float, duration: float, min_len: float = 8.0) -> tuple[float, float]:
-    """Saf fonksiyon. Claude'un önerdiği kırpmayı güvenli aralığa çeker."""
+    """Saf fonksiyon. Önerilen kırpmayı güvenli aralığa çeker."""
     start = max(0.0, min(start, duration))
     end = min(duration, max(end, 0.0))
     if end - start < min_len:
@@ -88,43 +95,114 @@ def clamp_trim(start: float, end: float, duration: float, min_len: float = 8.0) 
     return round(start, 2), round(end, 2)
 
 
-def heuristic(broadcaster: str, clip_title: str, duration: float) -> dict:
-    """Claude yoksa: her klibi orta puanla geçir, kırpma yok, şablon metin."""
-    meta = metadata.finalize(metadata.fallback_meta(broadcaster, clip_title), broadcaster)
-    return {"score": 6, "is_gta6": True, "category": "other", "reason": "no analysis (no API key)",
-            "best_start": 0.0, "best_end": duration, "meta": meta}
+# ------------------------------------------------------------------ ücretsiz sezgisel analiz
+def motion_level(video: Path, samples: int = 16) -> float:
+    """Ardışık örnek kareler arasındaki ortalama piksel farkı (0-1). Menü/yükleme ekranı ~0."""
+    import cv2
+
+    cap = cv2.VideoCapture(str(video))
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
+    prev, diffs = None, []
+    for i in range(samples):
+        if total:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int(total * i / samples))
+        ok, frame = cap.read()
+        if not ok:
+            continue
+        g = cv2.cvtColor(cv2.resize(frame, (160, 90)), cv2.COLOR_BGR2GRAY).astype(np.float32)
+        if prev is not None:
+            diffs.append(float(np.abs(g - prev).mean()) / 255.0)
+        prev = g
+    cap.release()
+    return float(np.mean(diffs)) if diffs else 0.0
 
 
-def analyze(video: Path, duration: float, words: list[Word], broadcaster: str, clip_title: str, views: int,
-            cfg: dict) -> dict:
-    if not env("ANTHROPIC_API_KEY") and not env("ANTHROPIC_AUTH_TOKEN"):
-        return heuristic(broadcaster, clip_title, duration)
-    import anthropic
-
-    content: list[dict] = []
-    for t, jpg in extract_frames(video, duration, cfg["quality"]["frames"]):
-        content.append({"type": "text", "text": f"Frame at {t:.1f}s:"})
-        content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
-                                                    "data": base64.b64encode(jpg).decode()}})
-    content.append({"type": "text", "text": (
-        f"Streamer: {broadcaster}\nClip title (written by a viewer or the stream title): {clip_title}\n"
-        f"Twitch views: {views}\nDuration: {duration:.1f}s\nTranscript:\n{timed_transcript(words)}")})
+def clip_features(video: Path, duration: float, words: list[Word]) -> dict:
+    loud = loudness_per_second(video)
+    spike = float(loud.max() - np.median(loud)) if len(loud) else 0.0
     try:
-        resp = anthropic.Anthropic().beta.messages.parse(
-            model=cfg["metadata"]["model"], max_tokens=8000,
-            output_config={"effort": cfg["quality"]["effort"]},
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-            system=SYSTEM, messages=[{"role": "user", "content": content}],
-            output_format=ClipAnalysis,
-        )
-    except anthropic.APIError as e:
-        log.warning("Claude analiz hatası, sezgisel değerlendirme kullanılıyor: %s", e)
-        return heuristic(broadcaster, clip_title, duration)
-    a = resp.parsed_output
-    if resp.stop_reason == "refusal" or a is None:
-        return heuristic(broadcaster, clip_title, duration)
-    start, end = clamp_trim(a.best_start, a.best_end, duration)
-    meta = metadata.finalize(metadata.ClipMeta(title=a.title, hook=a.hook, description=a.description,
-                                               hashtags=a.hashtags), broadcaster)
-    return {"score": a.score, "is_gta6": a.is_gta6, "category": a.category, "reason": a.reason,
-            "best_start": start, "best_end": end, "meta": meta}
+        motion = motion_level(video)
+    except ImportError:
+        motion = 0.05  # opencv yoksa nötr
+    return {"loud": loud, "spike_db": spike, "motion": motion,
+            "wps": len(words) / max(duration, 1.0)}
+
+
+def popularity(signals: dict) -> float:
+    """0-1. Canlı klipte sohbet patlaması puanı, diğerlerinde izlenme hızı (keşifteki puan)."""
+    s = float(signals.get("score") or 0)
+    if signals.get("source") == "live":
+        return min(1.0, s / 30000)
+    return min(1.0, math.log10(s + 1) / 4)  # saatte ~10 bin izlenme = 1.0
+
+
+def heuristic_score(f: dict, signals: dict) -> tuple[int, str]:
+    """Saf fonksiyon. Ücretsiz sinyallerden 1-10 puan ve kısa gerekçe."""
+    if f["motion"] < 0.008:
+        return 2, "almost no motion (menu, loading screen or AFK)"
+    parts = {
+        "popularity": 2.0 * popularity(signals),
+        "audio": 2.0 * min(1.0, f["spike_db"] / 15),
+        "motion": 1.5 * min(1.0, f["motion"] / 0.08),
+        "speech": 1.5 * min(1.0, f["wps"] / 2.0),
+    }
+    score = round(min(10.0, 3.0 + sum(parts.values())))
+    best = max(parts, key=parts.get)
+    return int(score), f"heuristic: strongest signal = {best} ({', '.join(f'{k} {v:.1f}' for k, v in parts.items())})"
+
+
+def heuristic_trim(loud: np.ndarray, duration: float, target: int = 30) -> tuple[float, float]:
+    """Uzun kliplerde en yüksek ses zirvesini sona yakın tutan ~30 sn'lik pencere."""
+    if duration <= target + 5 or len(loud) < target:
+        return 0.0, duration
+    w = pick_windows(loud, length=target, top_k=1, pre_roll=int(target * 0.65), baseline=max(10, len(loud) // 2))
+    return clamp_trim(w[0][0], w[0][1], duration) if w else (0.0, duration)
+
+
+_JUNK = re.compile(r"(![a-z]+|\||#\w+|\bdrops?\b|\bsub(scribe)?\b|\bgiveaway\b|\bday \d+\b)", re.I)
+HOOKS = ["WAIT FOR IT", "HE WAS NOT READY", "GTA 6 IS INSANE", "THIS CAN'T BE REAL", "WATCH TILL THE END",
+         "NOBODY EXPECTED THIS", "GTA 6 COPS ARE CRAZY", "HE ACTUALLY DID IT"]
+TITLE_TEMPLATES = ["{s} was NOT ready for this in GTA 6 😂", "GTA 6 got {s} like this 💀",
+                   "{s} can't believe what just happened in GTA 6", "This GTA 6 moment broke {s} 😭",
+                   "{s}'s most insane GTA 6 moment yet"]
+
+
+def heuristic_meta(broadcaster: str, clip_title: str, clip_id: str) -> dict:
+    """Twitch klip başlığı iyi ise onu kullanır (genelde klibi açan izleyicinin yazdığı vurucu bir cümle);
+    yayın başlığına benziyorsa (komutlar, |, aşırı uzun) şablona geçer."""
+    h = int(hashlib.md5(clip_id.encode()).hexdigest(), 16)
+    t = (clip_title or "").strip()
+    good = 3 <= len(t) <= 70 and not _JUNK.search(t)
+    title = f"{t} | {broadcaster} GTA 6" if good else TITLE_TEMPLATES[h % len(TITLE_TEMPLATES)].format(s=broadcaster)
+    m = metadata.ClipMeta(title=title[:90], hook=HOOKS[h % len(HOOKS)],
+                          description=f"{t if good else title}\nStreamer: twitch.tv/{broadcaster.lower()}",
+                          hashtags=["GTA6", "GTAVI", "GTA6Clips", "GTA", "Gaming", "Twitch", broadcaster])
+    return metadata.finalize(m, broadcaster)
+
+
+def heuristic(video: Path, duration: float, words: list[Word], broadcaster: str, clip_title: str,
+              clip_id: str, signals: dict) -> dict:
+    f = clip_features(video, duration, words)
+    score, reason = heuristic_score(f, signals)
+    start, end = heuristic_trim(f["loud"], duration)
+    return {"score": score, "is_gta6": True, "category": "other", "reason": reason, "best_start": start,
+            "best_end": end, "meta": heuristic_meta(broadcaster, clip_title, clip_id), "engine": "heuristic"}
+
+
+# ------------------------------------------------------------------ giriş noktası
+def analyze(video: Path, duration: float, words: list[Word], broadcaster: str, clip_title: str, views: int,
+            cfg: dict, clip_id: str = "", signals: dict | None = None) -> dict:
+    signals = signals or {"views": views}
+    if llm.provider(cfg) != "none":
+        frames = extract_frames(video, duration, cfg["quality"]["frames"])
+        text = (f"Frames are at: {', '.join(f'{t:.1f}s' for t, _ in frames)}\n"
+                f"Streamer: {broadcaster}\nClip title (by a viewer or the stream title): {clip_title}\n"
+                f"Twitch views: {views}\nDuration: {duration:.1f}s\nTranscript:\n{timed_transcript(words)}")
+        a = llm.structured(cfg, SYSTEM, text, ClipAnalysis, [j for _, j in frames], cfg["quality"]["effort"])
+        if a is not None:
+            start, end = clamp_trim(a.best_start, a.best_end, duration)
+            meta = metadata.finalize(metadata.ClipMeta(title=a.title, hook=a.hook, description=a.description,
+                                                       hashtags=a.hashtags), broadcaster)
+            return {"score": a.score, "is_gta6": a.is_gta6, "category": a.category, "reason": a.reason,
+                    "best_start": start, "best_end": end, "meta": meta, "engine": llm.provider(cfg)}
+    return heuristic(video, duration, words, broadcaster, clip_title, clip_id or video.stem, signals)

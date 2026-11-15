@@ -1,0 +1,82 @@
+# Ayarlar. Telefondan düzenle: GitHub'da bu dosyayı aç > kalem simgesi > Commit changes.
+
+game_name: "Grand Theft Auto VI"
+
+# --- Kaynak 1: Twitch'teki popüler klipler (izlenme HIZINA göre sıralanır) ---
+discovery:
+  language: en
+  lookback_hours: 24
+  min_views: 300
+  min_duration: 8
+  max_clips_per_run: 15
+  top_streamers_boost: 30   # şu an canlıda en çok izlenen ilk N yayıncının kliplerine bonus
+
+# --- Kaynak 2: Canlı avcı. Sohbet patladığı anda Twitch klibi oluşturur (en hızlı içerik) ---
+# Gerekli: `gta6clips auth twitch` (klip oluşturma izni, senin Twitch hesabınla)
+live:
+  enabled: true
+  top_channels: 25          # en çok izlenen kaç GTA 6 yayınını dinlesin
+  min_viewers: 1500
+  refresh_minutes: 5
+  spike_ratio: 3.0          # sohbet normalin kaç katına çıkınca "patlama" sayılsın
+  min_weight: 15            # 6 saniyede en az bu kadar (ağırlıklı) mesaj
+  cooldown_seconds: 120     # aynı kanalda iki klip arası
+  max_clips_per_hour: 20
+
+# --- Yapay zeka: TAMAMEN ÜCRETSİZ ---
+# github: GitHub Models (GitHub Actions'ta anahtarsız, ücretsiz; günlük sınır dolunca sezgisele düşer)
+# none:   yapay zeka yok, ücretsiz sinyallerle puanlama (izlenme hızı, sohbet, ses, hareket, konuşma)
+# claude: ÜCRETLİ, kullanma
+ai:
+  provider: github
+  github_model: openai/gpt-4o-mini
+  max_images: 4
+
+# --- Kalite kapısı: her klip 1-10 puanlanır, eşiğin altı yüklenmez ---
+quality:
+  min_score: 6              # altı hiç kurgulanmaz/yüklenmez. Hacim istersen 5, seçicilik istersen 7
+  frames: 6                 # yapay zekaya gösterilecek kare sayısı
+  effort: medium
+
+blocklist: []
+
+# Yüz kamerası otomatik bulunur (data/facecams.json). Yanlışsa buradan düzelt (0-1 oranları).
+facecams:
+  # ornekyayinci: {x: 0.0, y: 0.0, w: 0.25, h: 0.3}
+
+render:
+  zoom: 1.15
+  auto_facecam: true
+  captions: true
+  whisper_model: small
+  hook: true
+  credit: true
+  progress_bar: true        # altta dolan çubuk (izlenme süresini artırır)
+  brand: ""                 # kanal adın, örn "@gta6moments" (sağ üstte küçük)
+
+metadata:
+  model: claude-opus-5-5
+  effort: low
+
+upload:
+  youtube:
+    enabled: true
+    max_per_day: 6
+    privacy: public
+    category_id: "20"
+  tiktok:
+    enabled: true
+    max_per_day: 10
+    method: browser         # browser: tiktok-uploader (herkese açık) | api: resmi API
+    headless: true
+    visibility: everyone
+  min_gap_minutes: 45
+  peak_hours_utc: []        # boş = her saat. Örn ABD akşamı: [22, 23, 0, 1, 2, 3, 4]
+  max_age_hours: 36         # bundan eski klipler artık yüklenmez (bayat içerik)
+
+schedule:
+  discover_minutes: 15
+  stats_hours: 3            # YouTube izlenmelerini çekip yayıncı ağırlıklarını güncelle
+
+paths:
+  data_dir: data

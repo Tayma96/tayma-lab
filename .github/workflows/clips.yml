@@ -1,0 +1,108 @@
+# Ana iş: GTA 6 kliplerini bulur, kurgular, yükler. Ücretsiz GitHub sunucusunda, bilgisayar gerekmeden.
+# Her çalıştırma ~5.5 saat sürer; bitince sıradaki hemen başlar (concurrency), yani neredeyse kesintisiz.
+name: GTA 6 klipleri
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # çalışan iş yoksa yenisini başlatır
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Yükleme yapılsın mı? (false = sadece üret, kontrol için)"
+        type: boolean
+        default: true
+      minutes:
+        description: "Kaç dakika çalışsın"
+        default: "330"
+
+concurrency:
+  group: gta6clips
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  models: read          # ücretsiz GitHub Models (yapay zeka analizi) için
+
+jobs:
+  clips:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      STATE_KEY: ${{ secrets.STATE_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+      TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      TIKTOK_SESSIONID: ${{ secrets.TIKTOK_SESSIONID }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Araçları kur
+        run: |
+          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          sudo apt-get install -y fonts-dejavu-core
+          pip install '.[captions,tiktok-browser]'
+          python -m playwright install --with-deps chromium
+
+      - name: Whisper modelini önbellekten al
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-models-v1
+
+      - name: Önceki durumu al
+        uses: actions/cache/restore@v4
+        with:
+          path: state.enc
+          key: state-${{ github.run_id }}
+          restore-keys: state-
+
+      - name: Durumu aç
+        run: bash scripts/state.sh unpack
+
+      - name: Çalıştır
+        run: |
+          UPLOAD_FLAG=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.upload }}" = "false" ]; then
+            UPLOAD_FLAG="--no-upload"
+          fi
+          gta6clips run --loop $UPLOAD_FLAG --max-minutes "${{ inputs.minutes || '330' }}"
+
+      - name: Özet
+        if: always()
+        run: |
+          {
+            echo "## GTA 6 klipleri - özet"
+            echo '```json'
+            gta6clips status 2>/dev/null || echo "{}"
+            echo '```'
+            echo "Kurgulanan video sayısı (bu çalıştırma): $(ls data/out/*.mp4 2>/dev/null | wc -l)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Videoları önizleme için ekle (sadece "yükleme yok" modunda)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.upload == false
+        uses: actions/upload-artifact@v4
+        with:
+          name: onizleme-videolari
+          path: data/out/*.mp4
+          retention-days: 3
+          if-no-files-found: ignore
+
+      - name: Durumu şifrele
+        if: always()
+        run: bash scripts/state.sh pack
+
+      - name: Durumu kaydet
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state.enc
+          key: state-${{ github.run_id }}

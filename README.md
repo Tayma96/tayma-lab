@@ -1,6 +1,6 @@
 # GTA 6 Klip Otomasyonu
 
-En çok izlenen GTA 6 yayınlarındaki en iyi anları **anında** yakalar, Claude'a izletip sadece iyi
+En çok izlenen GTA 6 yayınlarındaki en iyi anları **anında** yakalar, ücretsiz yapay zekaya izletip sadece iyi
 olanları seçer, en güçlü bölümüne kırpar, dikey (9:16) videoya kurgular ve YouTube Shorts ile
 TikTok'a en doğru sırayla yükler. Neyin izlendiğini öğrenip kendini ayarlar.
 
@@ -8,9 +8,9 @@ TikTok'a en doğru sırayla yükler. Neyin izlendiğini öğrenip kendini ayarla
 Kaynaklar
   ├─ Canlı avcı: en büyük 25 yayının sohbetini dinler, sohbet patladığı an Twitch klibi oluşturur
   ├─ Popüler klipler: izlenme HIZINA ve yayıncının geçmiş performansına göre
-  └─ VOD: ses zirveleri + Claude viral puanı
+  └─ VOD: ses zirveleri + yapay zeka viral puanı
 → Whisper döküm
-→ Claude analizi (kareler + konuşma): 1-10 puan, gerçekten GTA 6 mı, en iyi bölüm, başlık/kanca/hashtag
+→ Ücretsiz analiz (GitHub Models; sınır dolarsa ücretsiz sinyaller): 1-10 puan, gerçekten GTA 6 mı, en iyi bölüm, başlık/kanca/hashtag
 → Kalite kapısı: eşiğin altındakiler elenir
 → Kurgu: 1080x1920, yüz kamerası/bulanık düzen, kelime vurgulu altyazı, kanca, ilerleme çubuğu, marka
 → Yayın: kalite > tazelik önceliği, yoğun saatler, günlük limitler
@@ -19,28 +19,18 @@ Kaynaklar
 
 ## Kurulum
 
+**Bilgisayarın yoksa (önerilen):** [KURULUM.md](KURULUM.md). Telefondan ~30 dakikada kurulur;
+sistem GitHub'ın ücretsiz sunucularında 7/24 çalışır. **Hiçbir ücret yok.**
+
+Kendi bilgisayarında/sunucunda çalıştırmak istersen:
 ```bash
-# ffmpeg gerekli (apt install ffmpeg / brew install ffmpeg)
-python -m venv .venv && source .venv/bin/activate
-pip install -e '.[captions]'
-cp config.example.yaml config.yaml
+pip install -e '.[captions,tiktok-browser]' && playwright install chromium
 cp .env.example .env      # anahtarları doldur
 ```
 
-### Anahtarlar
-| Ne | Nereden | Not |
-|---|---|---|
-| `TWITCH_CLIENT_ID/SECRET` | dev.twitch.tv/console/apps | Hemen alınır. OAuth Redirect URL: `http://localhost:8767/callback` |
-| Twitch kullanıcı yetkisi | `gta6clips auth twitch` | Canlı avcının klip oluşturması için (senin Twitch hesabınla) |
-| `ANTHROPIC_API_KEY` | platform.claude.com | Boşsa şablon başlık kullanılır |
-| YouTube OAuth JSON | Google Cloud Console → YouTube Data API v3 → OAuth client (Desktop) | `secrets/youtube_client_secret.json` |
-| TikTok çerezi | Tarayıcıda giriş → "Get cookies.txt LOCALLY" → `secrets/tiktok_cookies.txt` (ya da `TIKTOK_SESSIONID`) | `method: browser` için |
-| `TIKTOK_CLIENT_KEY/SECRET` | developers.tiktok.com → Content Posting API, `video.publish` | Sadece `method: api` için |
-
-```bash
-pip install -e '.[captions,tiktok-browser]' && playwright install chromium
-gta6clips auth youtube    # tarayıcıda izin ver
-```
+**Ücretler:** Twitch, YouTube API, TikTok yükleme, Whisper, ffmpeg, GitHub Actions (public repo) ve
+GitHub Models (yapay zeka) ücretsizdir. Claude API ücretlidir ve varsayılan olarak **kapalıdır**
+(`ai.provider: github`).
 
 ## Kullanım
 
@@ -69,7 +59,7 @@ docker run -d --restart unless-stopped -v $PWD/data:/app/data -v $PWD/secrets:/a
 |---|---|---|
 | [wkaisertexas/tiktok-uploader](https://github.com/wkaisertexas/tiktok-uploader) (MIT) | TikTok'a denetim beklemeden herkese açık yükleme | `upload.tiktok.method: browser`, `pip install -e '.[tiktok-browser]' && playwright install chromium` |
 | [eat-pray-ai/yutu](https://github.com/eat-pray-ai/yutu) (Apache-2.0) | YouTube kanal yönetimi: SEO, yorum, oynatma listesi, silme | `.claude/skills/youtube` (resmi skill'leri) + `.mcp.json` (yutu MCP sunucusu) |
-| [Anil-matcha/AI-Youtube-Shorts-Generator](https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator) (MIT) | Yüz takibi ve viral an ölçütleri | Fikir olarak uyarlandı: `facecam.py` (yüz kamerası tespiti), `highlights.VIRALITY_SYSTEM` (Claude ile VOD puanlama) |
+| [Anil-matcha/AI-Youtube-Shorts-Generator](https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator) (MIT) | Yüz takibi ve viral an ölçütleri | Fikir olarak uyarlandı: `facecam.py` (yüz kamerası tespiti), `highlights.VIRALITY_SYSTEM` (yapay zeka ile VOD puanlama) |
 
 Claude Code bu repoda şu skill'leri kullanır (`.claude/skills/`):
 - **gta6-clips**: otomasyonu çalıştırma, ayarlama, sorun giderme, şikayet gelen yayıncıyı engelleyip videolarını bulma
@@ -93,15 +83,16 @@ yutu kurulumu: `npm i -g @eat-pray-ai/yutu`, sonra `yutu auth --credential secre
 src/gta6clips/
   live.py         canlı avcı (sohbet patlaması -> Twitch klibi)
   chat.py         Twitch sohbet istemcisi + patlama dedektörü
-  analyze.py      Claude analizi: kalite puanı, GTA 6 kontrolü, kırpma, metin
+  llm.py          ücretsiz yapay zeka sağlayıcıları (GitHub Models / yok / Ollama / Claude)
+  analyze.py      klip analizi (yapay zeka + ücretsiz sinyaller): kalite puanı, GTA 6 kontrolü, kırpma, metin
   twitch.py       Helix API, klip oluşturma, hız tabanlı sıralama
   download.py     yt-dlp
   transcribe.py   faster-whisper (kelime zamanları)
   captions.py     ASS altyazı (kelime vurgulu, kanca, kredi)
   editor.py       ffmpeg dikey kurgu
   facecam.py      OpenCV ile yüz kamerası tespiti
-  highlights.py   VOD ses zirvesi + Claude viral puanlama
-  metadata.py     Claude ile başlık/açıklama/hashtag
+  highlights.py   VOD ses zirvesi + yapay zeka viral puanlama
+  metadata.py     başlık/açıklama/hashtag
   uploaders/      youtube.py, tiktok.py (API), tiktok_browser.py (tiktok-uploader)
   pipeline.py     akış
   db.py           SQLite (tekrar yüklemeyi önler, günlük limit)

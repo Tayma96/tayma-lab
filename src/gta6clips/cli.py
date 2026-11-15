@@ -5,7 +5,7 @@ import json
 import logging
 
 from . import pipeline
-from .config import load_config
+from .config import bootstrap_secrets, load_config
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -23,6 +23,7 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--loop", action="store_true")
     run.add_argument("--no-upload", action="store_true")
     run.add_argument("--no-live", action="store_true")
+    run.add_argument("--max-minutes", type=float, help="bu kadar dakika sonra düzgünce dur (GitHub Actions için)")
     v = sub.add_parser("vod", help="Uzun bir yayından en iyi anları çıkar")
     v.add_argument("url")
     v.add_argument("--broadcaster", required=True)
@@ -31,12 +32,15 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("stats", help="YouTube izlenmelerini çek, yayıncı performansını göster")
     a = sub.add_parser("auth", help="Platform yetkilendirmesi")
     a.add_argument("platform", choices=["youtube", "tiktok", "twitch"])
+    a.add_argument("--device", action="store_true",
+                   help="Twitch: bilgisayarsız giriş (twitch.tv/activate'te kod girilir; GitHub Actions'ta çalışır)")
     sub.add_parser("status", help="Veritabanı özeti")
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="%(asctime)s %(levelname)s %(threadName)s %(name)s: %(message)s")
     cfg = load_config(args.config)
+    bootstrap_secrets()
 
     if args.cmd == "auth":
         if args.platform == "youtube":
@@ -47,7 +51,8 @@ def main(argv: list[str] | None = None) -> None:
             tiktok.authorize()
         else:
             from .twitch import TwitchUser
-            TwitchUser.from_env().authorize()
+            u = TwitchUser.from_env()
+            u.authorize_device() if args.device else u.authorize()
         return
 
     db = pipeline.open_db(cfg)
@@ -69,7 +74,8 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(db.stats(), indent=2, ensure_ascii=False))
     elif args.cmd == "run":
         if args.loop:
-            pipeline.run_forever(cfg, upload=not args.no_upload, live=not args.no_live)
+            pipeline.run_forever(cfg, upload=not args.no_upload, live=not args.no_live,
+                                 max_minutes=args.max_minutes)
         else:
             pipeline.discover(cfg, db)
             pipeline.render_pending(cfg, db)

@@ -22,8 +22,9 @@ def _credentials(interactive: bool = False):
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     token_file = Path(env("YOUTUBE_TOKEN_FILE", "secrets/youtube_token.json"))
-    creds = Credentials.from_authorized_user_file(str(token_file), SCOPES) if token_file.exists() else None
-    if creds and creds.expired and creds.refresh_token:
+    creds = Credentials.from_authorized_user_file(str(token_file)) if token_file.exists() else None
+    # Secrets'tan gelen dosyada sadece refresh_token vardır (erişim token'ı yok): geçersizse hemen yenile
+    if creds and not creds.valid and creds.refresh_token:
         creds.refresh(Request())
     if not creds or not creds.valid:
         if not interactive:

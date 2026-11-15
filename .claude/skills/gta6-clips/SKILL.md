@@ -11,8 +11,8 @@ Kod `src/gta6clips/`, ayarlar `config.yaml` (örnek: `config.example.yaml`), ana
 ```
 Kaynaklar ─┬─ live.py      canlı sohbet patlaması -> Twitch klibi oluştur (en hızlı)
            ├─ twitch.py    popüler klipler, izlenme HIZINA + yayıncı performansına göre
-           └─ highlights   VOD ses zirveleri + Claude viral puanı
-   -> analyze.py  Claude: kareler + döküm -> puan 1-10, GTA 6 mı, en iyi bölüm, başlık/kanca
+           └─ highlights   VOD ses zirveleri + yapay zeka viral puanı
+   -> analyze.py  ücretsiz yapay zeka (GitHub Models) ya da sezgisel: kareler + döküm -> puan 1-10, GTA 6 mı, en iyi bölüm, başlık/kanca
    -> kalite kapısı (quality.min_score) -> kırp + kurgula (editor.py)
    -> upload_priority: kalite > popülerlik, 12 saat yarı ömürlü tazelik, canlı bonusu
    -> yükle (peak_hours_utc, max_per_day, min_gap) -> izlenmeleri çek -> yayıncı çarpanları
@@ -49,3 +49,10 @@ YouTube'dakileri `youtube` skill'i (yutu MCP, `video-delete`) ile sil; önce lis
 
 ## Test
 `pytest` (ffmpeg gerekir). Kod değiştirdikten sonra çalıştır. Başlık/kanca ilkeleri: `viral-shorts` skill'i.
+
+## Nerede çalışıyor
+Kullanıcının bilgisayarı yok ve hiçbir ücret istemiyor. Sistem GitHub Actions'ta çalışır
+(`.github/workflows/clips.yml`, ~5.5 saatlik işler arka arkaya). Giriş bilgileri GitHub Secrets'ta;
+veritabanı ve yenilenen token'lar `scripts/state.sh` ile şifrelenip Actions önbelleğinde saklanır.
+Kurulum adımları `KURULUM.md`'de. Ücretli bir servis (Claude API, VPS vb.) önerme; yapay zeka için
+`ai.provider: github` (ücretsiz) ya da `none` kullan.

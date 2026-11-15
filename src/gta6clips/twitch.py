@@ -105,6 +105,31 @@ class TwitchUser:
         self._save(self._token({"code": code, "grant_type": "authorization_code", "redirect_uri": redirect}))
         print("Twitch kullanıcı yetkisi kaydedildi (canlı klip oluşturma açık).")
 
+    def authorize_device(self, timeout: float = 900) -> None:
+        """Bilgisayarsız giriş (Device Code Flow): telefondan twitch.tv/activate adresinde kodu gir.
+        GitHub Actions'taki 'Twitch girişi' iş akışı bunu çalıştırır."""
+        r = requests.post("https://id.twitch.tv/oauth2/device", timeout=30,
+                          data={"client_id": self.client_id, "scopes": self.SCOPES})
+        r.raise_for_status()
+        d = r.json()
+        print("=" * 60)
+        print(f"Telefonundan şu adresi aç: {d['verification_uri']}")
+        print(f"Kod: {d['user_code']}   ({d['expires_in'] // 60} dakika geçerli)")
+        print("=" * 60, flush=True)
+        end = time.time() + min(timeout, d["expires_in"])
+        while time.time() < end:
+            time.sleep(d.get("interval", 5))
+            t = requests.post("https://id.twitch.tv/oauth2/token", timeout=30, data={
+                "client_id": self.client_id, "client_secret": self.client_secret, "scopes": self.SCOPES,
+                "device_code": d["device_code"], "grant_type": "urn:ietf:params:oauth:grant-type:device_code"})
+            if t.status_code == 200:
+                self._save(t.json())
+                print("Twitch girişi tamam, canlı avcı klip oluşturabilir.")
+                return
+            if "authorization_pending" not in t.text and "slow_down" not in t.text:
+                raise RuntimeError(f"Twitch girişi başarısız: {t.text[:300]}")
+        raise RuntimeError("Süre doldu, kod girilmedi. İş akışını tekrar çalıştır.")
+
     def _token(self, data: dict) -> dict:
         r = requests.post("https://id.twitch.tv/oauth2/token", timeout=30, data={
             "client_id": self.client_id, "client_secret": self.client_secret, **data})

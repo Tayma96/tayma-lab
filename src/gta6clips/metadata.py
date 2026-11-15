@@ -1,4 +1,4 @@
-"""Claude ile başlık, açılış kancası, açıklama ve hashtag üretimi. API anahtarı yoksa şablon kullanılır."""
+"""Başlık, açılış kancası, açıklama ve hashtag üretimi (ücretsiz yapay zeka; yoksa şablon)."""
 from __future__ import annotations
 
 import logging
@@ -61,30 +61,9 @@ def finalize(meta: ClipMeta, broadcaster: str) -> dict:
 
 
 def generate(broadcaster: str, clip_title: str, transcript: str, views: int, cfg: dict) -> dict:
-    from .config import env
+    from . import llm
 
-    if not env("ANTHROPIC_API_KEY") and not env("ANTHROPIC_AUTH_TOKEN"):
-        return finalize(fallback_meta(broadcaster, clip_title), broadcaster)
-    import anthropic
-
-    try:
-        client = anthropic.Anthropic()
-        response = client.beta.messages.parse(
-            model=cfg["metadata"]["model"],
-            max_tokens=4000,
-            output_config={"effort": cfg["metadata"]["effort"]},
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-            system=SYSTEM,
-            messages=[{"role": "user", "content": (
-                f"Streamer: {broadcaster}\nClip title (written by a viewer): {clip_title}\n"
-                f"Clip views on Twitch: {views}\nTranscript:\n{transcript or '(no speech detected)'}")}],
-            output_format=ClipMeta,
-        )
-        if response.stop_reason == "refusal" or response.parsed_output is None:
-            log.warning("Claude meta veri üretmedi (%s), şablon kullanılıyor", response.stop_reason)
-            return finalize(fallback_meta(broadcaster, clip_title), broadcaster)
-        return finalize(response.parsed_output, broadcaster)
-    except anthropic.APIError as e:
-        log.warning("Claude API hatası, şablon kullanılıyor: %s", e)
-        return finalize(fallback_meta(broadcaster, clip_title), broadcaster)
+    meta = llm.structured(cfg, SYSTEM, (
+        f"Streamer: {broadcaster}\nClip title (written by a viewer): {clip_title}\n"
+        f"Clip views on Twitch: {views}\nTranscript:\n{transcript or '(no speech detected)'}"), ClipMeta)
+    return finalize(meta or fallback_meta(broadcaster, clip_title), broadcaster)

@@ -51,7 +51,7 @@ def pick_windows(loud: np.ndarray, *, length: int = 30, top_k: int = 5, pre_roll
     return sorted(chosen)
 
 
-# --- Claude ile viral puanlama -------------------------------------------------------------
+# --- Yapay zeka ile viral puanlama -------------------------------------------------------------
 # Ölçütler AI-Youtube-Shorts-Generator'ın (MIT) "virality criteria" çerçevesinden uyarlandı;
 # podcast yerine oyun yayını anlarına göre yeniden yazıldı.
 
@@ -71,14 +71,14 @@ Low scores: silence, menus, loading screens, reading donations, repetitive drivi
 A candidate needs a hook in its first 3 seconds and must make sense without the rest of the stream."""
 
 
-def rank_with_claude(candidates: list[dict], cfg: dict) -> list[dict]:
-    """candidates: [{"index", "start", "end", "transcript"}] -> her birine score/hook/reason ekler.
-    Claude yoksa ses puanı sırasıyla döner."""
+def rank_with_ai(candidates: list[dict], cfg: dict) -> list[dict]:
+    """candidates: [{"index", "start", "end", "transcript"}] -> her birine viral_score/hook/reason ekler.
+    Yapay zeka yoksa/sınır dolduysa ses puanı sırasıyla döner (ücretsiz)."""
     from pydantic import BaseModel
 
-    from .config import env
+    from . import llm
 
-    if not candidates or not (env("ANTHROPIC_API_KEY") or env("ANTHROPIC_AUTH_TOKEN")):
+    if not candidates:
         return candidates
 
     class Rated(BaseModel):
@@ -90,25 +90,13 @@ def rank_with_claude(candidates: list[dict], cfg: dict) -> list[dict]:
     class Ratings(BaseModel):
         ratings: list[Rated]
 
-    import anthropic
-
     listing = "\n\n".join(f"[{c['index']}] {c['start']}s-{c['end']}s\n{c['transcript'] or '(no speech)'}"
                           for c in candidates)
-    try:
-        resp = anthropic.Anthropic().beta.messages.parse(
-            model=cfg["metadata"]["model"], max_tokens=8000,
-            output_config={"effort": "medium"},
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-            system=VIRALITY_SYSTEM,
-            messages=[{"role": "user", "content": f"Candidates:\n\n{listing}\n\nRate every candidate."}],
-            output_format=Ratings,
-        )
-    except anthropic.APIError as e:
-        log.warning("Claude viral puanlama başarısız, ses puanı kullanılıyor: %s", e)
+    res = llm.structured(cfg, VIRALITY_SYSTEM, f"Candidates:\n\n{listing}\n\nRate every candidate.", Ratings,
+                         effort="medium")
+    if res is None:
         return candidates
-    if resp.stop_reason == "refusal" or resp.parsed_output is None:
-        return candidates
-    by_idx = {r.index: r for r in resp.parsed_output.ratings}
+    by_idx = {r.index: r for r in res.ratings}
     out = []
     for c in candidates:
         r = by_idx.get(c["index"])

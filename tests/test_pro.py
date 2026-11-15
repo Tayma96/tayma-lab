@@ -154,13 +154,6 @@ def test_timed_transcript():
     assert analyze.timed_transcript([]) == "(no speech detected)"
 
 
-def test_analyze_without_key_passes_with_template(monkeypatch, tmp_path):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-    a = analyze.analyze(tmp_path / "x.mp4", 20, [], "Kai", "crazy chase", 10, _merge(DEFAULTS, {}))
-    assert a["score"] == 6 and a["is_gta6"] and a["best_end"] == 20 and "twitch.tv/kai" in a["meta"]["description"]
-
-
 def _make_src(path, seconds=6):
     subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30",
                     "-f", "lavfi", "-i", "sine", "-t", str(seconds), "-shortest", str(path)], check=True)
