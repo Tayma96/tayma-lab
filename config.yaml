@@ -93,6 +93,7 @@ upload:
 launch:
   enabled: true
   moments_utc:
+    - "2026-11-18T11:00:00Z"   # Yeni Zelanda gece yarısı (14:00 TSİ) - kategori 2 milyon izleyiciye çıktı
     - "2026-11-18T21:00:00Z"   # Türkiye gece yarısı (00:00 TSİ) - Türk yayıncılar
     - "2026-11-19T00:00:00Z"   # İngiltere gece yarısı (03:00 TSİ)
     - "2026-11-19T05:00:00Z"   # ABD doğu gece yarısı (08:00 TSİ) - en büyük yayıncılar
@@ -121,6 +122,7 @@ launch:
     - eray
     - rraenee
     - hype
+  after_minutes: 120          # anın ardından kaç dakika lansman modunda kalınsın
   reserve: {youtube: 3, tiktok: 5}   # lansmandan önceki 24 saatte sıradan kliplerin bırakacağı hak
 
 # --- Telegram: lansman klipleri ve 8+ puanlı videolar telefonuna gelir (TELEGRAM_BOT_TOKEN secret'ı) ---
