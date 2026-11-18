@@ -105,6 +105,7 @@ def _ai(cfg: dict) -> tuple[bool, str]:
 
         res = llm.structured(cfg, "Reply in JSON.", "Say OK in the answer field.", Ping)
         if res is None:
+            _diagnose_github_models(cfg)
             return False, "GitHub Models yanıt vermedi (ayrıntı logda): başlıklar şablondan, çeviri kapalı kalır"
         return True, f"GitHub Models çalışıyor ({cfg['ai'].get('github_model')})"
     return True, f"Sağlayıcı: {provider}"
@@ -133,6 +134,34 @@ def _launch(cfg: dict) -> tuple[bool, str]:
     from . import launch
 
     return True, launch.describe(cfg)
+
+
+def _diagnose_github_models(cfg: dict) -> None:
+    """Yapay zeka çalışmazsa nedenini loga yazar: model listesi ve birkaç istek biçimi."""
+    import logging
+
+    log = logging.getLogger("gta6clips.check")
+    token = env("GITHUB_TOKEN") or env("GH_MODELS_TOKEN")
+    auth = {"Authorization": f"Bearer {token}"}
+    try:
+        r = requests.get("https://models.github.ai/catalog/models", headers=auth, timeout=30)
+        ids = [m.get("id") for m in r.json()] if r.headers.get("content-type", "").startswith("application/json") else []
+        log.warning("Katalog: HTTP %s %s, %d model, örnek: %s | ham: %r", r.status_code,
+                    r.headers.get("content-type"), len(ids), [i for i in ids if "mini" in (i or "")][:8],
+                    r.text[:200] if not ids else "")
+    except Exception as e:  # noqa: BLE001
+        log.warning("Katalog alınamadı: %s", e)
+    for model in (cfg["ai"].get("github_model"), "openai/gpt-4.1-mini", "openai/gpt-4o-mini"):
+        for headers in ({**auth, "Content-Type": "application/json"},
+                        {**auth, "Accept": "application/vnd.github+json"}):
+            try:
+                r = requests.post("https://models.github.ai/inference/chat/completions", headers=headers,
+                                  timeout=60, json={"model": model,
+                                                    "messages": [{"role": "user", "content": "Say hi"}]})
+                log.warning("Deneme model=%s accept=%s -> HTTP %s %s %r", model, headers.get("Accept", "-"),
+                            r.status_code, r.headers.get("content-type"), r.text[:160])
+            except Exception as e:  # noqa: BLE001
+                log.warning("Deneme model=%s hata: %s", model, e)
 
 
 def run_checks(cfg: dict) -> list[tuple[str, bool, str]]:
