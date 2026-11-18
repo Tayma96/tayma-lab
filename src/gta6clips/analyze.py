@@ -95,6 +95,76 @@ def clamp_trim(start: float, end: float, duration: float, min_len: float = 8.0) 
     return round(start, 2), round(end, 2)
 
 
+def _phrases(words: list[Word], gap: float = 0.35) -> list[tuple[float, float, str]]:
+    """Kelimeleri, aralarında `gap` saniyeden kısa boşluk olan öbeklere (konuşma parçalarına) ayırır."""
+    out: list[tuple[float, float, str]] = []
+    for w in words:
+        if out and w.start - out[-1][1] < gap:
+            s, _, t = out[-1]
+            out[-1] = (s, w.end, f"{t} {w.text}")
+        else:
+            out.append((w.start, w.end, w.text))
+    return out
+
+
+def smart_cut(start: float, end: float, duration: float, words: list[Word], loud: np.ndarray | None = None,
+              *, moment_at: float | None = None, pre_roll: float = 10.0, min_after: float = 8.0,
+              min_len: float = 12.0, max_len: float = 45.0, max_shift: float = 3.0) -> tuple[float, float]:
+    """Saf fonksiyon. Önerilen kesimi doğal noktalara oturtur:
+    - an biliniyorsa (canlı klip) başlangıç andan en az `pre_roll` sn önce, bitiş en az `min_after` sn sonra,
+    - başlangıç bir cümlenin ortasına düşüyorsa o cümlenin başına alınır,
+    - bitiş bir cümlenin ya da bağırışın (ses zirvesi) ortasına düşüyorsa bitene kadar uzatılır,
+    - kayma en fazla `max_shift` sn; süre `min_len`-`max_len` arasında; sona kısa nefes payı eklenir."""
+    start, end = max(0.0, start), min(duration, end)
+    if moment_at is not None:
+        start = min(start, max(0.0, moment_at - pre_roll))
+        end = max(end, min(duration, moment_at + min_after))
+    if end - start > max_len:
+        end = start + max_len
+    if end - start < min_len:
+        end = min(duration, start + min_len)
+        start = max(0.0, min(start, end - min_len))
+
+    phrases = _phrases(words)
+    # başlangıç: konuşmanın ortasında başlama (ilk kelimeden 0.15 sn önce gir)
+    for ps, pe, _ in phrases:
+        if ps < start < pe + 0.1 and start - ps <= max_shift:
+            start = max(0.0, ps - 0.15)
+            break
+    else:
+        nxt = next((ps for ps, _, _ in phrases if start <= ps < start + 0.25), None)
+        if nxt is not None:
+            start = max(0.0, nxt - 0.15)
+
+    # bitiş: cümle bitsin (sığmıyorsa cümle başlamadan önce bitir)
+    limit = min(duration, end + max_shift)
+    floor = max(start + min_len, (moment_at + min_after) if moment_at is not None else 0.0)
+    snapped = False
+    for ps, pe, _ in phrases:
+        if ps < end < pe + 0.05:
+            if pe + 0.35 <= limit:
+                end, snapped = pe + 0.35, True
+            elif ps - 0.1 >= floor:
+                end, snapped = ps - 0.1, True
+            break
+    # bitiş: bağırış/patlama sürüyorsa (ses ortalamanın belirgin üstünde) sönene kadar devam et
+    if loud is not None and len(loud):
+        base = float(np.median(loud))
+        sec = int(end)
+        while sec < len(loud) and loud[sec] > base + 6 and sec + 1 <= limit:
+            sec += 1
+        if sec > end:
+            end, snapped = min(limit, float(sec)), False
+    # en sona çok yaklaştıysa (<1.2 sn) tamamını al: kırpılmış gibi durmasın
+    if duration - end < 1.2:
+        end = duration
+    elif not snapped:
+        end = min(duration, end + 0.25)  # nefes payı
+    if end - start > max_len + max_shift:
+        end = start + max_len + max_shift
+    return round(start, 2), round(end, 2)
+
+
 # ------------------------------------------------------------------ ücretsiz sezgisel analiz
 def motion_level(video: Path, samples: int = 16) -> float:
     """Ardışık örnek kareler arasındaki ortalama piksel farkı (0-1). Menü/yükleme ekranı ~0."""

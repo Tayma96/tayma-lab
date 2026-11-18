@@ -17,6 +17,7 @@ DEFAULTS: dict[str, Any] = {
         "min_duration": 8,
         "max_clips_per_run": 15,
         "top_streamers_boost": 30,
+        "languages": ["en", "tr"],   # en: global (YouTube + TikTok), tr: Türk yayıncılar (sadece TikTok)
     },
     "blocklist": [],
     "facecams": {},
@@ -48,12 +49,28 @@ DEFAULTS: dict[str, Any] = {
         "min_weight": 15,
         "cooldown_seconds": 120,
         "max_clips_per_hour": 20,
+        "local_channels": 8,         # ayrıca en büyük kaç Türkçe yayın dinlensin
+        "local_min_viewers": 300,
+        # Twitch klibi isteğin yapıldığı andan önceki ~30 sn'yi alır. Sohbet patlaması anın ~7 sn
+        # gerisinden gelir (yayın gecikmesi + yazma süresi). İstek patlamadan 30-10-7=13 sn sonra yapılır:
+        # klip andan 10 sn önce başlar, ardından ~20 sn tepki kalır.
+        "pre_roll_seconds": 10,
+        "chat_lag_seconds": 7,
+        "twitch_clip_seconds": 30,
+    },
+    "cut": {
+        "min_length": 12,          # Shorts için en kısa
+        "max_length": 45,          # en uzun (izlenme oranı düşmesin)
+        "min_after_moment": 8,     # andan sonra en az bu kadar tepki kalsın
+        "max_shift": 3.0,          # cümle/bağırış bitsin diye kesim en fazla bu kadar kayabilir
     },
     "schedule": {"discover_minutes": 15, "stats_hours": 3},
     "upload": {
-        "youtube": {"enabled": True, "max_per_day": 6, "privacy": "public", "category_id": "20"},
+        "youtube": {"enabled": True, "max_per_day": 6, "privacy": "public", "category_id": "20",
+                    "languages": ["en"]},                        # YouTube: sadece global içerik
         "tiktok": {"enabled": True, "max_per_day": 10, "method": "browser", "headless": True,
-                   "browser": "chromium", "visibility": "everyone"},
+                   "browser": "chromium", "visibility": "everyone",
+                   "languages": ["en", "tr"], "subtitles": "tr"},  # TikTok: Türkçe altyazı + Türk yayıncılar
         "min_gap_minutes": 45,
         "peak_hours_utc": [],
         "max_age_hours": 36,
@@ -61,10 +78,12 @@ DEFAULTS: dict[str, Any] = {
     "launch": {
         "enabled": True,
         # GTA 6 yerel gece yarısı açılıyor: İngiltere, ABD doğu (en büyük yayıncılar), ABD batı
-        "moments_utc": ["2026-11-19T00:00:00Z", "2026-11-19T05:00:00Z", "2026-11-19T08:00:00Z"],
+        "moments_utc": ["2026-11-18T21:00:00Z", "2026-11-19T00:00:00Z", "2026-11-19T05:00:00Z",
+                        "2026-11-19T08:00:00Z"],
         "before_minutes": 20,
         "after_minutes": 90,
         "watch_channels": [],
+        "watch_channels_tr": [],
         "top_channels": 12,
         "min_viewers": 3000,
         "spike_ratio": 2.0,

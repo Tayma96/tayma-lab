@@ -63,11 +63,14 @@ def render(src: Path, out: Path, *, ass_path: Path | None, zoom: float, facecam:
     cmd += ["-i", str(src.resolve())]
     if duration is not None:
         cmd += ["-t", f"{duration:.2f}"]
+    length = duration or (probe_duration(src) - (start or 0))
+    # Kısa ses yumuşatma: kesim noktasında "tık" ya da yarım hece sesi duyulmasın
+    fades = f"afade=t=in:st=0:d=0.12,afade=t=out:st={max(0.0, length - 0.3):.2f}:d=0.3,"
     cmd += [
         "-filter_complex", filter_graph(zoom, facecam, ass_path.name if ass_path else None,
-                                        (duration or probe_duration(src) - (start or 0)) if progress else None),
+                                        length if progress else None),
         "-map", "[v]", "-map", "0:a?",
-        "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+        "-af", fades + "loudnorm=I=-14:TP=-1.5:LRA=11",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",
         "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart",
         str(out.resolve()),

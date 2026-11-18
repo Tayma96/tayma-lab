@@ -40,6 +40,10 @@ MIGRATIONS = [
     ("clips", "quality", "REAL"),                     # Claude kalite puanı 1-10
     ("clips", "analysis_json", "TEXT"),
     ("clips", "added_at", "TEXT"),
+    ("clips", "moment_at", "REAL"),                   # canlı klipte anın klip içindeki saniyesi
+    ("clips", "language", "TEXT"),                    # yayın dili (en, tr ...)
+    ("clips", "video_tr_path", "TEXT"),               # Türkçe altyazılı sürüm (TikTok)
+    ("clips", "meta_tr_json", "TEXT"),
     ("uploads", "views", "INTEGER"),
     ("uploads", "views_checked_at", "TEXT"),
 ]
@@ -86,10 +90,10 @@ class DB:
         """Yeni klibi ekler; zaten varsa False döner."""
         cur = self.conn.execute(
             "INSERT OR IGNORE INTO clips (id, broadcaster, title, url, views, score, duration, created_at, source,"
-            " added_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            " added_at, moment_at, language) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (clip["id"], clip["broadcaster"], clip.get("title"), clip["url"], clip.get("views", 0),
              clip.get("score", 0), clip.get("duration", 0), clip.get("created_at"), clip.get("source", "top"),
-             now_utc().isoformat()),
+             now_utc().isoformat(), clip.get("moment_at"), (clip.get("language") or "en").lower()[:2]),
         )
         self.conn.commit()
         return cur.rowcount == 1
@@ -101,12 +105,13 @@ class DB:
             " LIMIT ?", (status, limit)))
 
     def mark_rendered(self, clip_id: str, video_path: str, meta: dict, quality: float | None = None,
-                      analysis: dict | None = None) -> None:
+                      analysis: dict | None = None, video_tr: str | None = None, meta_tr: dict | None = None) -> None:
         self.conn.execute(
-            "UPDATE clips SET status='rendered', video_path=?, meta_json=?, quality=?, analysis_json=?, error=NULL"
-            " WHERE id=?",
+            "UPDATE clips SET status='rendered', video_path=?, meta_json=?, quality=?, analysis_json=?, error=NULL,"
+            " video_tr_path=?, meta_tr_json=? WHERE id=?",
             (video_path, json.dumps(meta, ensure_ascii=False), quality,
-             json.dumps(analysis, ensure_ascii=False) if analysis else None, clip_id))
+             json.dumps(analysis, ensure_ascii=False) if analysis else None, video_tr,
+             json.dumps(meta_tr, ensure_ascii=False) if meta_tr else None, clip_id))
         self.conn.commit()
 
     def mark_rejected(self, clip_id: str, quality: float | None, reason: str, analysis: dict | None = None) -> None:
@@ -120,10 +125,14 @@ class DB:
         self.conn.commit()
 
     # --- uploads ---
-    def pending_uploads(self, platform: str, limit: int = 50, max_age_hours: float | None = None) -> list[dict]:
+    def pending_uploads(self, platform: str, limit: int = 50, max_age_hours: float | None = None,
+                        languages: list[str] | None = None) -> list[dict]:
+        """languages: bu platforma gidecek yayın dilleri (örn. YouTube sadece ['en'])."""
         rows = [dict(r) for r in self.conn.execute(
             "SELECT c.* FROM clips c WHERE c.status='rendered' AND NOT EXISTS ("
             " SELECT 1 FROM uploads u WHERE u.clip_id=c.id AND u.platform=? AND u.status='done')", (platform,))]
+        if languages:
+            rows = [r for r in rows if (r.get("language") or "en") in languages]
         now = now_utc()
         if max_age_hours:
             rows = [r for r in rows

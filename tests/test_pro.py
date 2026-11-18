@@ -195,7 +195,8 @@ def test_produce_trims_and_renders(monkeypatch, tmp_path):
     monkeypatch.setattr(analyze, "analyze", lambda *a, **k: {
         "score": 8, "is_gta6": True, "category": "chaos", "reason": "boom",
         "best_start": 1.0, "best_end": 4.0, "meta": meta})
-    out, a = pipeline.produce(_cfg(tmp_path), clip_id="c3", broadcaster="kai", title="t", views=0, src=src)
+    out, a = pipeline.produce(_cfg(tmp_path, cut={"min_length": 2}), clip_id="c3", broadcaster="kai",
+                              title="t", views=0, src=src)
     assert out is not None and out.exists()
     assert 2.6 < editor.probe_duration(out) < 3.5
     ass = (tmp_path / "tmp" / "c3.ass").read_text()

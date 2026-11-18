@@ -111,3 +111,75 @@ def test_telegram_caption_and_chat_discovery(monkeypatch, tmp_path):
     monkeypatch.setattr(notify.requests, "get", lambda *a, **k: (_ for _ in ()).throw(AssertionError("ağ")))
     assert notify.chat_id() == "42"                                # kaydedilenden okur, ağa çıkmaz
     assert not notify.enabled(cfg(notify={"telegram": False}))
+
+
+# --- klip zamanlaması ve akıllı kesim ---
+from gta6clips.analyze import smart_cut  # noqa: E402
+from gta6clips.live import clip_timing  # noqa: E402
+from gta6clips.localize import spread, tr_upper  # noqa: E402
+from gta6clips.transcribe import Word  # noqa: E402
+
+
+def test_clip_timing_puts_moment_10s_in():
+    delay, moment_at = clip_timing(DEFAULTS["live"])
+    assert delay == 13 and moment_at == 10                  # 30 sn klip: 10 sn önce + 20 sn tepki
+
+
+def test_smart_cut_keeps_pre_roll_and_reaction():
+    s, e = smart_cut(6.0, 14.0, 30.0, [], None, moment_at=10.0)
+    assert s == 0.0 and e >= 18.0                           # andan 10 sn önce, en az 8 sn sonra
+
+
+def test_smart_cut_never_starts_or_ends_mid_sentence():
+    words = [Word(4.6, 5.0, "oh"), Word(5.1, 5.6, "my"), Word(5.7, 6.2, "god"),
+             Word(19.5, 20.0, "this"), Word(20.1, 20.6, "is"), Word(20.7, 21.4, "insane!")]
+    s, e = smart_cut(5.3, 20.3, 30.0, words, None)
+    assert s <= 4.6                                         # cümlenin başına alındı
+    assert e >= 21.4                                        # cümle bitene kadar uzatıldı
+
+
+def test_smart_cut_extends_while_screaming_and_takes_tail():
+    import numpy as np
+    loud = np.array([40.0] * 30)
+    loud[20:23] = 60.0                                      # 20-23 sn arası bağırış
+    s, e = smart_cut(0.0, 20.5, 30.0, [], loud)
+    assert e >= 23.0
+    s, e = smart_cut(0.0, 29.2, 30.0, [], None)
+    assert e == 30.0                                        # sona çok yakınsa tamamı
+
+
+def test_smart_cut_length_bounds():
+    s, e = smart_cut(0.0, 5.0, 60.0, [], None)
+    assert e - s >= 12
+    s, e = smart_cut(0.0, 59.0, 60.0, [], None)
+    assert e - s <= 48
+
+
+def test_turkish_spread_and_upper():
+    groups = [[Word(1.0, 1.4, "oh"), Word(1.5, 2.0, "no")], [Word(3.0, 3.5, "run")]]
+    out = spread(groups, ["eyvah ya", "kaç"])
+    assert [w.text for w in out] == ["eyvah", "ya", "kaç"]
+    assert out[0].start == 1.0 and out[1].end <= 2.0 and out[2].start == 3.0
+    assert tr_upper("inanılmaz şimdi") == "İNANILMAZ ŞİMDİ"
+
+
+def test_upload_language_routing(tmp_path):
+    db = DB(tmp_path / "c.db")
+    for cid, lang in (("en1", "en"), ("tr1", "tr")):
+        db.add_clip({"id": cid, "broadcaster": "a", "url": "u", "language": lang})
+        db.mark_rendered(cid, f"/v/{cid}.mp4", {"title": "t", "hashtags": []}, 7,
+                         video_tr=f"/v/{cid}_tr.mp4", meta_tr={"title": "tr", "hashtags": []})
+    yt = [r["id"] for r in db.pending_uploads("youtube", languages=["en"])]
+    tt = [r["id"] for r in db.pending_uploads("tiktok", languages=["en", "tr"])]
+    assert yt == ["en1"] and sorted(tt) == ["en1", "tr1"]
+    row = db.pending_uploads("tiktok", languages=["tr"])[0]
+    assert row["video_tr_path"] == "/v/tr1_tr.mp4"
+
+
+def test_pick_channels_adds_turkish_streams():
+    lc = {"min_viewers": 3000, "top_channels": 2, "local_channels": 1, "local_min_viewers": 300}
+    en = [{"user_login": f"en{i}", "viewer_count": 50000 - i, "language": "en"} for i in range(4)]
+    tr = [{"user_login": "elraenn", "viewer_count": 8000, "language": "tr"},
+          {"user_login": "kucuk", "viewer_count": 100, "language": "tr"}]
+    out = pick_channels(en, [], lc, set(), tr)
+    assert set(out) == {"en0", "en1", "elraenn"}

@@ -48,12 +48,16 @@ def discover(cfg: dict, db: DB) -> int:
     tw = Twitch(env("TWITCH_CLIENT_ID"), env("TWITCH_CLIENT_SECRET"))
     d = cfg["discovery"]
     gid = tw.game_id(cfg["game_name"])
-    streams = tw.top_streams(gid, d.get("language"))
+    langs = d.get("languages") or [d.get("language") or "en"]
+    streams = tw.top_streams(gid, langs)
     top_streamers = [s["user_login"] for s in streams]
     if top_streamers:
         log.info("Şu an en çok izlenen GTA 6 yayıncıları: %s", ", ".join(top_streamers[:10]))
     ranked = rank_clips(tw.top_clips(gid, d["lookback_hours"]), top_streamers, cfg, db.streamer_performance())
-    added = sum(db.add_clip(c) for c in ranked[: d["max_clips_per_run"] * 3])
+    # Her dile kendi kotası: Türkçe klipler İngilizcelerin izlenmeleri altında ezilmesin
+    per_lang = max(1, d["max_clips_per_run"] * 3 // len(langs))
+    chosen = [c for lang in langs for c in [r for r in ranked if r.get("language", "en") == lang][:per_lang]]
+    added = sum(db.add_clip(c) for c in chosen)
     log.info("Keşif: %d uygun klip, %d yeni eklendi", len(ranked), added)
     return added
 
@@ -63,17 +67,46 @@ def shift_words(words: list[transcribe.Word], start: float, end: float) -> list[
     return [transcribe.Word(w.start - start, w.end - start, w.text) for w in words if start <= w.start < end]
 
 
+def _render_version(cfg: dict, *, src: Path, out: Path, words: list[transcribe.Word], meta: dict,
+                    broadcaster: str, facecam: dict | None, start: float, end: float, total: float,
+                    upper=str.upper) -> Path:
+    dd, r = data_dir(cfg), cfg["render"]
+    trimmed = start > 0.05 or end < total - 0.05
+    length = end - start
+    words = shift_words(words, start, end) if trimmed else words
+    ass = dd / "tmp" / f"{out.stem}.ass"
+    ass.write_text(captions.build_ass(
+        words, length,
+        hook=meta["hook"] if r["hook"] else None,
+        credit=f"twitch.tv/{broadcaster.lower()}" if r["credit"] else None,
+        caption_y=editor.caption_y(facecam),
+        brand=r.get("brand") or None, upper=upper), encoding="utf-8")
+    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam,
+                  start=start if trimmed else None, duration=length if trimmed else None,
+                  progress=r.get("progress_bar", True))
+    return out
+
+
 def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int, src: Path,
-            hook_hint: str = "", signals: dict | None = None, launch_clip: bool = False) -> tuple[Path | None, dict]:
-    """Analiz eder; kalite kapısından geçerse kırpıp dikey video üretir.
-    Dönüş: (video yolu veya reddedildiyse None, analiz sözlüğü)"""
+            hook_hint: str = "", signals: dict | None = None, launch_clip: bool = False,
+            language: str = "en", moment_at: float | None = None) -> tuple[Path | None, dict]:
+    """Analiz eder; kalite kapısından geçerse doğal noktalardan kırpıp dikey video üretir.
+    İngilizce yayın: global sürüm (İngilizce altyazı, YouTube) + Türkçe sürüm (TikTok).
+    Türkçe yayın: sadece Türkçe sürüm (TikTok).
+    Dönüş: (ana video yolu veya reddedildiyse None, analiz sözlüğü; Türkçe sürüm a["tr"] içinde)"""
+    from . import localize
+    from .highlights import loudness_per_second
+
     dd = data_dir(cfg)
-    r, q = cfg["render"], cfg["quality"]
+    r, q, up = cfg["render"], cfg["quality"], cfg["upload"]
+    language = (language or "en")[:2]
     total = editor.probe_duration(src)
     words: list[transcribe.Word] = []
     if r["captions"]:
-        words = transcribe.transcribe(src, r["whisper_model"], cfg["discovery"].get("language"))
+        words = transcribe.transcribe(src, r["whisper_model"], language)
     clip_title = title or hook_hint
+    if moment_at is not None:
+        clip_title += f" [chat exploded at ~{moment_at:.0f}s into this clip: that is the key moment]"
     if launch_clip:
         clip_title = (f"{clip_title} [LAUNCH MOMENT: {broadcaster} is opening/starting GTA 6 for the very first "
                       "time on launch night; the title screen, loading or first seconds ARE the content]")
@@ -86,25 +119,34 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
         log.info("Elendi [%s] puan=%s gta6=%s: %s", broadcaster, a["score"], a["is_gta6"], a["reason"])
         return None, a
 
-    start, end = a["best_start"], a["best_end"]
-    trimmed = start > 0.3 or end < total - 0.3
-    words = shift_words(words, start, end) if trimmed else words
-    length = end - start
-    meta = a["meta"]
+    c = cfg.get("cut") or {}
+    try:
+        loud = loudness_per_second(src)
+    except Exception:  # noqa: BLE001 - ses okunamazsa kesim yine çalışır
+        loud = None
+    start, end = analyze.smart_cut(
+        a["best_start"], a["best_end"], total, words, loud, moment_at=moment_at,
+        pre_roll=cfg["live"].get("pre_roll_seconds", 10), min_after=c.get("min_after_moment", 8),
+        min_len=c.get("min_length", 12), max_len=c.get("max_length", 45), max_shift=c.get("max_shift", 3.0))
+    a["best_start"], a["best_end"] = start, end
     facecam = resolve_facecam(cfg, broadcaster, src)
-    ass = dd / "tmp" / f"{clip_id}.ass"
-    ass.write_text(captions.build_ass(
-        words, length,
-        hook=meta["hook"] if r["hook"] else None,
-        credit=f"twitch.tv/{broadcaster.lower()}" if r["credit"] else None,
-        caption_y=editor.caption_y(facecam),
-        brand=r.get("brand") or None), encoding="utf-8")
-    out = dd / "out" / f"{clip_id}.mp4"
-    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam,
-                  start=start if trimmed else None, duration=length if trimmed else None,
-                  progress=r.get("progress_bar", True))
-    log.info("Kurgulandı [%s] (%s) puan=%s %s (%.0fs%s): %s", broadcaster, a.get("engine"), a["score"], a["category"], length,
-             f", kırpıldı {start:.0f}-{end:.0f}" if trimmed else "", meta["title"])
+    common = dict(src=src, broadcaster=broadcaster, facecam=facecam, start=start, end=end, total=total)
+
+    tiktok_tr = (up["tiktok"].get("enabled") and up["tiktok"].get("subtitles") == "tr"
+                 and language in (up["tiktok"].get("languages") or ["en", "tr"]))
+    out: Path | None = None
+    if language != "tr":
+        out = _render_version(cfg, out=dd / "out" / f"{clip_id}.mp4", words=words, meta=a["meta"], **common)
+    if tiktok_tr or language == "tr":
+        tr_words, tr_meta = localize.to_turkish(cfg, words, a["meta"], broadcaster, language, clip_id)
+        tr_out = _render_version(cfg, out=dd / "out" / f"{clip_id}_tr.mp4", words=tr_words, meta=tr_meta,
+                                 upper=localize.tr_upper, **common)
+        a["tr"] = {"video": str(tr_out), "meta": tr_meta}
+        if out is None:  # Türkçe yayın: ana video da Türkçe sürüm
+            out, a["meta"] = tr_out, tr_meta
+    log.info("Kurgulandı [%s/%s] (%s) puan=%s %s (%.0f-%.0f sn, %.0f sn)%s: %s", broadcaster, language,
+             a.get("engine"), a["score"], a["category"], start, end, end - start,
+             " + TR sürüm" if a.get("tr") else "", a["meta"]["title"])
     return out, a
 
 
@@ -123,12 +165,15 @@ def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
             out, a = produce(cfg, clip_id=row["id"], broadcaster=row["broadcaster"], title=row["title"] or "",
                              views=row["views"], src=src,
                              signals={"views": row["views"], "score": row["score"], "source": row["source"]},
-                             launch_clip=launch_clip)
-            analysis = {k: v for k, v in a.items() if k != "meta"}
+                             launch_clip=launch_clip, language=row["language"] or "en",
+                             moment_at=row["moment_at"])
+            analysis = {k: v for k, v in a.items() if k not in ("meta", "tr")}
+            tr = a.get("tr") or {}
             if out is None:
                 db.mark_rejected(row["id"], a["score"], a["reason"], analysis)
             else:
-                db.mark_rendered(row["id"], str(out), a["meta"], a["score"], analysis)
+                db.mark_rendered(row["id"], str(out), a["meta"], a["score"], analysis,
+                                 video_tr=tr.get("video"), meta_tr=tr.get("meta"))
                 done += 1
                 if launch_clip or (a["score"] or 0) >= cfg.get("notify", {}).get("min_quality", 8):
                     notify.send_video(cfg, out, notify.caption(a["meta"], row["broadcaster"], a["score"],
@@ -226,7 +271,8 @@ def upload_pending(cfg: dict, db: DB) -> int:
         if time.time() < _UPLOAD_BACKOFF.get(platform, 0):
             continue  # son hatadan sonra kısa mola (kota/yetki sorununda her 30 sn'de denemesin)
         reserve = launch.reserve_for(cfg, platform)
-        for row in db.pending_uploads(platform, max_age_hours=up.get("max_age_hours")):
+        for row in db.pending_uploads(platform, max_age_hours=up.get("max_age_hours"),
+                                      languages=pcfg.get("languages")):
             urgent = row.get("source") == "launch"
             limit = pcfg["max_per_day"] if urgent else max(0, pcfg["max_per_day"] - reserve)
             if not db.can_upload(platform, limit, up["min_gap_minutes"], up.get("peak_hours_utc"), urgent=urgent):
@@ -234,7 +280,10 @@ def upload_pending(cfg: dict, db: DB) -> int:
                     break  # günlük hak bitti
                 continue  # sıradan klip bekler; listede lansman klibi varsa o yine geçebilir
             try:
-                remote = fn(Path(row["video_path"]), json.loads(row["meta_json"]), cfg)
+                video, meta = row["video_path"], row["meta_json"]
+                if platform == "tiktok" and row.get("video_tr_path") and Path(row["video_tr_path"]).exists():
+                    video, meta = row["video_tr_path"], row["meta_tr_json"] or meta  # Türkçe sürüm
+                remote = fn(Path(video), json.loads(meta), cfg)
                 db.record_upload(row["id"], platform, "done", remote)
                 log.info("Yüklendi %s [kalite %s] %s", platform, row.get("quality"), row["id"])
                 count += 1
@@ -277,7 +326,8 @@ def recover_missing_videos(db: DB) -> int:
     videoların dosyası kaybolduysa klibi yeniden kurgu kuyruğuna al."""
     n = 0
     for row in db.clips_with_status("rendered", 10000):
-        if not row["video_path"] or not Path(row["video_path"]).exists():
+        tr = row["video_tr_path"]
+        if not row["video_path"] or not Path(row["video_path"]).exists() or (tr and not Path(tr).exists()):
             db.conn.execute("UPDATE clips SET status='new' WHERE id=?", (row["id"],))
             n += 1
     db.conn.commit()

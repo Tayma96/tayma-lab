@@ -55,10 +55,10 @@ class Twitch:
             raise RuntimeError(f"Twitch'te '{name}' kategorisi bulunamadı")
         return data[0]["id"]
 
-    def top_streams(self, game_id: str, language: str | None, limit: int = 100) -> list[dict]:
-        params = {"game_id": game_id, "first": min(limit, 100)}
+    def top_streams(self, game_id: str, language: str | list[str] | None, limit: int = 100) -> list[dict]:
+        params: dict = {"game_id": game_id, "first": min(limit, 100)}
         if language:
-            params["language"] = language
+            params["language"] = language  # liste de olabilir (Helix birden fazla dili kabul eder)
         return self._get("/streams", params).get("data", [])
 
     def streams_by_login(self, logins: list[str]) -> list[dict]:
@@ -207,7 +207,8 @@ def rank_clips(clips: list[dict], top_streamers: list[str], cfg: dict,
         login = (c.get("broadcaster_name") or "").lower()
         if login in blocked or c.get("broadcaster_id") and str(c["broadcaster_id"]) in blocked:
             continue
-        if d.get("language") and c.get("language") and not c["language"].startswith(d["language"]):
+        langs = d.get("languages") or ([d["language"]] if d.get("language") else [])
+        if langs and c.get("language") and not any(c["language"].startswith(x) for x in langs):
             continue
         if c.get("view_count", 0) < d["min_views"] or c.get("duration", 0) < d["min_duration"]:
             continue
@@ -230,6 +231,7 @@ def rank_clips(clips: list[dict], top_streamers: list[str], cfg: dict,
             "duration": c.get("duration", 0),
             "created_at": c.get("created_at"),
             "score": round(score, 1),
+            "language": (c.get("language") or "en")[:2],
         })
     ranked.sort(key=lambda x: x["score"], reverse=True)
     return ranked

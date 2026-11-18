@@ -87,7 +87,8 @@ def live_settings(cfg: dict, now: datetime | None = None) -> dict:
 
 
 def watch_channels(cfg: dict) -> list[str]:
-    return [c.strip().lower() for c in _cfg(cfg).get("watch_channels") or [] if c and c.strip()]
+    names = (_cfg(cfg).get("watch_channels") or []) + (_cfg(cfg).get("watch_channels_tr") or [])
+    return list(dict.fromkeys(c.strip().lower() for c in names if c and c.strip()))
 
 
 def adjust_run_minutes(cfg: dict, minutes: float, now: datetime | None = None, max_minutes: float = 340,
