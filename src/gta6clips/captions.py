@@ -5,22 +5,28 @@ from .transcribe import Word
 
 W, H = 1080, 1920
 
-HEADER = f"""[Script Info]
-ScriptType: v4.00+
-PlayResX: {W}
-PlayResY: {H}
-WrapStyle: 2
-ScaledBorderAndShadow: yes
+def header(w: int = W, h: int = H) -> str:
+    k = 0.8 if w > h else 1.0  # yatay videoda yazılar biraz küçük
+    cap, hook, cred = round(82 * k), round(88 * k), round(42 * k)
+    return (
+        "[Script Info]\nScriptType: v4.00+\n"
+        f"PlayResX: {w}\nPlayResY: {h}\n"
+        "WrapStyle: 2\nScaledBorderAndShadow: yes\n\n"
+        "[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, "
+        "Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, "
+        "MarginL, MarginR, MarginV, Encoding\n"
+        f"Style: Caption,DejaVu Sans,{cap},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,7,3,5,"
+        "60,60,0,1\n"
+        f"Style: Hook,DejaVu Sans,{hook},&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,3,18,0,5,"
+        "60,60,0,1\n"
+        f"Style: Credit,DejaVu Sans,{cred},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,2,5,"
+        "60,60,0,1\n\n"
+        "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+    )
 
-[V4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,DejaVu Sans,82,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,7,3,5,60,60,0,1
-Style: Hook,DejaVu Sans,88,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,3,18,0,5,60,60,0,1
-Style: Credit,DejaVu Sans,42,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,2,5,60,60,0,1
 
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-"""
+HEADER = header()
 
 HIGHLIGHT = r"{\c&H00FFFF&}"  # sarı (ASS renkleri BBGGRR)
 RESET = r"{\c&HFFFFFF&}"
@@ -50,7 +56,7 @@ def group_words(words: list[Word], max_words: int = 3, max_gap: float = 0.6) -> 
     return groups
 
 
-def caption_events(words: list[Word], y: int, upper=str.upper) -> list[str]:
+def caption_events(words: list[Word], y: int, upper=str.upper, width: int = W) -> list[str]:
     lines = []
     for group in group_words(words):
         for i, w in enumerate(group):
@@ -59,25 +65,28 @@ def caption_events(words: list[Word], y: int, upper=str.upper) -> list[str]:
             for j, g in enumerate(group):
                 t = escape(upper(g.text))
                 parts.append(f"{HIGHLIGHT}{t}{RESET}" if j == i else t)
-            text = rf"{{\pos({W // 2},{y})}}" + " ".join(parts)
+            text = rf"{{\pos({width // 2},{y})}}" + " ".join(parts)
             lines.append(f"Dialogue: 0,{ts(w.start)},{ts(end)},Caption,,0,0,0,,{text}")
     return lines
 
 
 def build_ass(words: list[Word], duration: float, *, hook: str | None, credit: str | None,
               caption_y: int, hook_y: int = 330, credit_y: int = 1790, brand: str | None = None,
-              upper=str.upper) -> str:
+              upper=str.upper, size: tuple[int, int] = (W, H)) -> str:
+    w, h = size
+    if w > h:  # yatay video: kanca üstte, kredi altta
+        hook_y, credit_y = 140, 1040
     events = []
     if brand:
         # Kanalın adı/logosu: sağ üstte küçük ve yarı saydam, tüm video boyunca
         events.append(f"Dialogue: 1,{ts(0)},{ts(duration)},Credit,,0,0,0,,"
-                      rf"{{\an9\pos({W - 40},70)\alpha&H40&\fs38}}{escape(brand)}")
+                      rf"{{\an9\pos({w - 40},{50 if w > h else 70})\alpha&H40&\fs38}}{escape(brand)}")
     if hook:
         # Açılış kancası ilk 3.5 saniye ekranda
         events.append(f"Dialogue: 1,{ts(0)},{ts(min(3.5, duration))},Hook,,0,0,0,,"
-                      rf"{{\pos({W // 2},{hook_y})\fad(0,250)}}{escape(upper(hook))}")
+                      rf"{{\pos({w // 2},{hook_y})\fad(0,250)}}{escape(upper(hook))}")
     if credit:
         events.append(f"Dialogue: 1,{ts(0)},{ts(duration)},Credit,,0,0,0,,"
-                      rf"{{\pos({W // 2},{credit_y})}}{escape(credit)}")
-    events.extend(caption_events(words, caption_y, upper))
-    return HEADER + "\n".join(events) + "\n"
+                      rf"{{\pos({w // 2},{credit_y})}}{escape(credit)}")
+    events.extend(caption_events(words, caption_y, upper, w))
+    return header(w, h) + "\n".join(events) + "\n"

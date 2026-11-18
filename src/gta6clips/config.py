@@ -23,6 +23,7 @@ DEFAULTS: dict[str, Any] = {
     "facecams": {},
     "render": {
         "zoom": 1.15,
+        "layout": "fit",           # fit: Twitch "Dolu" (dikey, yayının tamamı) | blur | stack (yüz kamerası)
         "auto_facecam": True,
         "captions": True,
         "whisper_model": "small",
@@ -70,7 +71,8 @@ DEFAULTS: dict[str, Any] = {
                     "languages": ["en"]},                        # YouTube: sadece global içerik
         "tiktok": {"enabled": True, "max_per_day": 10, "method": "browser", "headless": True,
                    "browser": "chromium", "visibility": "everyone",
-                   "languages": ["en", "tr"], "subtitles": "tr"},  # TikTok: Türkçe altyazı + Türk yayıncılar
+                   "languages": ["en", "tr"], "subtitles": "tr",
+                   "layout": "landscape"},  # yatay: TikTok'ta "tam ekran" düğmesi çıkar  # TikTok: Türkçe altyazı + Türk yayıncılar
         "min_gap_minutes": 45,
         "peak_hours_utc": [],
         "max_age_hours": 36,

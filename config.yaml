@@ -54,6 +54,8 @@ facecams:
   # ornekyayinci: {x: 0.0, y: 0.0, w: 0.25, h: 0.3}
 
 render:
+  layout: fit               # fit: Twitch'teki "Dolu" gibi, dikey çerçevede yayının tamamı (YouTube Shorts)
+                            # stack: yüz kamerası üstte + oyun altta | blur: bulanık arka plan
   zoom: 1.15
   auto_facecam: true
   captions: true
@@ -82,6 +84,7 @@ upload:
     visibility: everyone
     languages: [en, tr]     # TikTok: global + Türk yayıncılar
     subtitles: tr           # TikTok sürümü Türkçe altyazılı ve Türkçe başlıklı
+    layout: landscape       # yatay 16:9: TikTok'ta "tam ekran / yan çevir" düğmesi çıkar, yayın gibi
   min_gap_minutes: 45
   peak_hours_utc: []        # boş = her saat. Örn ABD akşamı: [22, 23, 0, 1, 2, 3, 4]
   max_age_hours: 36         # bundan eski klipler artık yüklenmez (bayat içerik)

@@ -69,7 +69,7 @@ def shift_words(words: list[transcribe.Word], start: float, end: float) -> list[
 
 def _render_version(cfg: dict, *, src: Path, out: Path, words: list[transcribe.Word], meta: dict,
                     broadcaster: str, facecam: dict | None, start: float, end: float, total: float,
-                    upper=str.upper) -> Path:
+                    upper=str.upper, layout: str = "fit") -> Path:
     dd, r = data_dir(cfg), cfg["render"]
     trimmed = start > 0.05 or end < total - 0.05
     length = end - start
@@ -79,11 +79,11 @@ def _render_version(cfg: dict, *, src: Path, out: Path, words: list[transcribe.W
         words, length,
         hook=meta["hook"] if r["hook"] else None,
         credit=f"twitch.tv/{broadcaster.lower()}" if r["credit"] else None,
-        caption_y=editor.caption_y(facecam),
-        brand=r.get("brand") or None, upper=upper), encoding="utf-8")
-    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam,
+        caption_y=editor.caption_y(facecam if layout == "stack" else None, layout),
+        brand=r.get("brand") or None, upper=upper, size=editor.canvas(layout)), encoding="utf-8")
+    editor.render(src, out, ass_path=ass, zoom=r["zoom"], facecam=facecam if layout == "stack" else None,
                   start=start if trimmed else None, duration=length if trimmed else None,
-                  progress=r.get("progress_bar", True))
+                  progress=r.get("progress_bar", True), layout=layout)
     return out
 
 
@@ -129,18 +129,21 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
         pre_roll=cfg["live"].get("pre_roll_seconds", 10), min_after=c.get("min_after_moment", 8),
         min_len=c.get("min_length", 12), max_len=c.get("max_length", 45), max_shift=c.get("max_shift", 3.0))
     a["best_start"], a["best_end"] = start, end
-    facecam = resolve_facecam(cfg, broadcaster, src)
+    layout_main = r.get("layout", "fit")                        # YouTube Shorts: dikey, yayının tamamı
+    layout_tt = up["tiktok"].get("layout", "landscape")        # TikTok: yatay (tam ekran düğmesi)
+    facecam = resolve_facecam(cfg, broadcaster, src) if "stack" in (layout_main, layout_tt) else None
     common = dict(src=src, broadcaster=broadcaster, facecam=facecam, start=start, end=end, total=total)
 
     tiktok_tr = (up["tiktok"].get("enabled") and up["tiktok"].get("subtitles") == "tr"
                  and language in (up["tiktok"].get("languages") or ["en", "tr"]))
     out: Path | None = None
     if language != "tr":
-        out = _render_version(cfg, out=dd / "out" / f"{clip_id}.mp4", words=words, meta=a["meta"], **common)
+        out = _render_version(cfg, out=dd / "out" / f"{clip_id}.mp4", words=words, meta=a["meta"],
+                              layout=layout_main, **common)
     if tiktok_tr or language == "tr":
         tr_words, tr_meta = localize.to_turkish(cfg, words, a["meta"], broadcaster, language, clip_id)
         tr_out = _render_version(cfg, out=dd / "out" / f"{clip_id}_tr.mp4", words=tr_words, meta=tr_meta,
-                                 upper=localize.tr_upper, **common)
+                                 upper=localize.tr_upper, layout=layout_tt, **common)
         a["tr"] = {"video": str(tr_out), "meta": tr_meta}
         if out is None:  # Türkçe yayın: ana video da Türkçe sürüm
             out, a["meta"] = tr_out, tr_meta
