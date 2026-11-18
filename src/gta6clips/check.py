@@ -94,8 +94,19 @@ def _tiktok(cfg: dict) -> tuple[bool, str]:
 def _ai(cfg: dict) -> tuple[bool, str]:
     provider = cfg.get("ai", {}).get("provider")
     if provider == "github":
-        ok = bool(env("GITHUB_TOKEN") or env("GH_MODELS_TOKEN"))
-        return ok, "GitHub Models hazır" if ok else "GITHUB_TOKEN yok (sadece GitHub Actions'ta otomatik gelir)"
+        if not (env("GITHUB_TOKEN") or env("GH_MODELS_TOKEN")):
+            return False, "GITHUB_TOKEN yok (sadece GitHub Actions'ta otomatik gelir)"
+        from pydantic import BaseModel
+
+        from . import llm
+
+        class Ping(BaseModel):
+            answer: str
+
+        res = llm.structured(cfg, "Reply in JSON.", "Say OK in the answer field.", Ping)
+        if res is None:
+            return False, "GitHub Models yanıt vermedi (ayrıntı logda): başlıklar şablondan, çeviri kapalı kalır"
+        return True, f"GitHub Models çalışıyor ({cfg['ai'].get('github_model')})"
     return True, f"Sağlayıcı: {provider}"
 
 

@@ -60,16 +60,23 @@ def _github(cfg: dict, system: str, text: str, schema: type[T], images: list[byt
     for img in images[: ai.get("max_images", 4)]:
         content.append({"type": "image_url", "image_url": {
             "url": "data:image/jpeg;base64," + base64.b64encode(img).decode(), "detail": "low"}})
+    url = ai.get("github_url", "https://models.github.ai/inference/chat/completions")
+    body = {"model": ai["github_model"],
+            "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}],
+            "response_format": {"type": "json_schema", "json_schema": {
+                "name": schema.__name__, "schema": schema.model_json_schema()}},
+            "temperature": 0.3}
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
     try:
-        r = requests.post(ai.get("github_url", "https://models.github.ai/inference/chat/completions"),
-                          timeout=120, headers={"Authorization": f"Bearer {token}",
-                                                "Accept": "application/vnd.github+json"},
-                          json={"model": ai["github_model"],
-                                "messages": [{"role": "system", "content": system},
-                                             {"role": "user", "content": content}],
-                                "response_format": {"type": "json_schema", "json_schema": {
-                                    "name": schema.__name__, "schema": schema.model_json_schema()}},
-                                "temperature": 0.3})
+        for attempt in range(3):  # anlık bağlantı kopmalarında hemen pes etme
+            try:
+                r = requests.post(url, timeout=120, headers=headers, json=body)
+                break
+            except requests.ConnectionError as e:
+                log.warning("GitHub Models bağlantı hatası (deneme %d/3): %s", attempt + 1, str(e)[:300])
+                if attempt == 2:
+                    raise
+                time.sleep(3 * (attempt + 1))
         if r.status_code == 429:
             wait = float(r.headers.get("retry-after", 3600))
             _pause("github", max(300.0, wait), "ücretsiz istek sınırı doldu")
@@ -80,7 +87,7 @@ def _github(cfg: dict, system: str, text: str, schema: type[T], images: list[byt
         r.raise_for_status()
         return schema.model_validate_json(r.json()["choices"][0]["message"]["content"])
     except requests.ConnectionError as e:
-        _pause("github", 900, f"bağlantı kurulamadı: {type(e).__name__}")
+        _pause("github", 300, f"bağlantı kurulamadı: {str(e)[:200]}")
         return None
     except (requests.RequestException, ValidationError, KeyError, IndexError, ValueError) as e:
         log.warning("GitHub Models yanıtı kullanılamadı (%s), bu klip sezgisel analiz edilecek", e)

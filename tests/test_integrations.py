@@ -42,6 +42,10 @@ def test_facecam_cache_on_video_without_face(tmp_path):
 
 
 def test_tiktok_browser_uses_library(monkeypatch, tmp_path):
+    """Alt süreç tarafı: kütüphaneyi doğru argümanlarla çağırır, tarayıcıyı kapatır, TIKTOK_OK yazar."""
+    import io
+    import json
+
     calls = {}
 
     class FakeUploader:
@@ -61,16 +65,40 @@ def test_tiktok_browser_uses_library(monkeypatch, tmp_path):
     monkeypatch.setitem(sys.modules, "tiktok_uploader", pkg)
     monkeypatch.setitem(sys.modules, "tiktok_uploader.upload", mod)
     monkeypatch.setenv("TIKTOK_SESSIONID", "abc")
-    tiktok_browser.close()
-
-    cfg = _merge(DEFAULTS, {})
     meta = {"title": "Insane chase", "hashtags": ["GTA6", "Kai"]}
-    rid = tiktok_browser.upload(tmp_path / "x.mp4", meta, cfg)
-    assert rid == "browser:x"
+    job = {"video": str(tmp_path / "x.mp4"), "description": tiktok_browser.caption(meta),
+           "visibility": "everyone", "browser": "chromium", "headless": True}
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(job)))
+    assert tiktok_browser._child() == 0
     assert calls["init"]["sessionid"] == "abc" and calls["init"]["headless"] is True
     assert calls["upload"][1] == "Insane chase\n#GTA6 #Kai" and calls["upload"][2] == "everyone"
-    tiktok_browser.close()
     assert calls["closed"]
+
+
+def test_tiktok_browser_runs_in_separate_process(monkeypatch, tmp_path):
+    """Ana süreç tarafı: yüklemeyi ayrı süreçte başlatır, TIKTOK_OK yoksa hata verir."""
+    import json
+    import subprocess
+
+    import pytest
+
+    seen = {}
+
+    def fake_run(cmd, input, **kw):
+        seen["cmd"], seen["job"] = cmd, json.loads(input)
+        return subprocess.CompletedProcess(cmd, 0, stdout="TIKTOK_OK\n", stderr="")
+
+    monkeypatch.setenv("TIKTOK_SESSIONID", "abc")
+    monkeypatch.setattr(tiktok_browser.subprocess, "run", fake_run)
+    cfg = _merge(DEFAULTS, {})
+    rid = tiktok_browser.upload(tmp_path / "x.mp4", {"title": "t", "hashtags": ["GTA6"]}, cfg)
+    assert rid == "browser:x" and seen["cmd"][-1] == "gta6clips.uploaders.tiktok_browser"
+    assert seen["job"]["description"] == "t\n#GTA6"
+
+    monkeypatch.setattr(tiktok_browser.subprocess, "run",
+                        lambda cmd, input, **kw: subprocess.CompletedProcess(cmd, 1, "", "captcha"))
+    with pytest.raises(RuntimeError, match="captcha"):
+        tiktok_browser.upload(tmp_path / "x.mp4", {"title": "t", "hashtags": []}, cfg)
 
 
 def test_tiktok_browser_missing_session(monkeypatch, tmp_path):
