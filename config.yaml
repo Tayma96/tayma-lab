@@ -71,13 +71,13 @@ metadata:
 
 upload:
   youtube:
-    enabled: true
+    enabled: false
     max_per_day: 6
     privacy: public
     category_id: "20"
     languages: [en]         # YouTube: sadece global (İngilizce yayınlar, İngilizce altyazı)
   tiktok:
-    enabled: true
+    enabled: false
     max_per_day: 10
     method: browser         # browser: tiktok-uploader (herkese açık) | api: resmi API
     headless: true
@@ -130,7 +130,7 @@ launch:
 
 # --- Telegram: lansman klipleri ve 8+ puanlı videolar telefonuna gelir (TELEGRAM_BOT_TOKEN secret'ı) ---
 notify:
-  telegram: true
+  telegram: false
   min_quality: 8
 
 schedule:

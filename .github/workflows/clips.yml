@@ -3,8 +3,9 @@
 name: GTA 6 klipleri
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"   # çalışan iş yoksa yenisini başlatır
+  # DURDURULDU (kullanıcı isteği): otomatik başlatma kapalı. Açmak için alttaki iki satırın başındaki # kaldır.
+  # schedule:
+  #   - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       upload:
@@ -80,7 +81,7 @@ jobs:
       # Zamanlanmış tetikleme (cron) gecikebiliyor. Yükleme modundaki her tur, sıradakini baştan sıraya
       # koyar; concurrency sayesinde bu tur bitince hemen başlar, arada boşluk kalmaz.
       - name: Sıradaki turu sıraya koy
-        if: github.event_name == 'schedule' || inputs.upload != false
+        if: false  # DURDURULDU: zincirleme tur kapalı (eski: github.event_name == 'schedule' || inputs.upload != false)
         run: |
           curl -sS -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/clips.yml/dispatches" \
