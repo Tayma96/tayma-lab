@@ -85,7 +85,17 @@ def _github(cfg: dict, system: str, text: str, schema: type[T], images: list[byt
             _pause("github", 6 * 3600, f"yetki yok ({r.status_code}); workflow'da 'models: read' izni gerekli")
             return None
         r.raise_for_status()
-        return schema.model_validate_json(r.json()["choices"][0]["message"]["content"])
+        try:
+            data = r.json()
+        except ValueError:
+            log.warning("GitHub Models JSON olmayan yanıt döndü: HTTP %s, %s, gövde: %r", r.status_code,
+                        r.headers.get("content-type"), r.text[:300])
+            return None
+        content = (data.get("choices") or [{}])[0].get("message", {}).get("content")
+        if not content:
+            log.warning("GitHub Models boş içerik döndü: %s", str(data)[:300])
+            return None
+        return schema.model_validate_json(content)
     except requests.ConnectionError as e:
         _pause("github", 300, f"bağlantı kurulamadı: {str(e)[:200]}")
         return None
