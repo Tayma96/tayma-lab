@@ -125,9 +125,16 @@ def test_bootstrap_youtube_token(monkeypatch, tmp_path):
     bootstrap_secrets()
     data = json.loads(f.read_text())
     assert data["refresh_token"] == "rt" and data["type"] == "authorized_user"
-    f.write_text('{"refreshed": true}')
-    bootstrap_secrets()                                            # var olanı ezmez
-    assert json.loads(f.read_text()) == {"refreshed": True}
+    refreshed = {**data, "token": "erisim", "expiry": "2099-01-01T00:00:00Z"}
+    f.write_text(json.dumps(refreshed))
+    bootstrap_secrets()                                            # aynı secret: yenilenmiş dosyayı ezmez
+    assert json.loads(f.read_text()) == refreshed
+    monkeypatch.setenv("YOUTUBE_REFRESH_TOKEN", "rt2")             # secret güncellendi: yenisi yazılır
+    bootstrap_secrets()
+    assert json.loads(f.read_text())["refresh_token"] == "rt2"
+    monkeypatch.setenv("YOUTUBE_CLIENT_SECRET", "sec2")            # yeni client secret de yansır
+    bootstrap_secrets()
+    assert json.loads(f.read_text())["client_secret"] == "sec2"
 
 
 def test_platform_ready(monkeypatch, tmp_path):
@@ -210,3 +217,19 @@ def test_run_forever_stops_at_deadline(monkeypatch, tmp_path):
     t0 = _t.time()
     pipeline.run_forever(c, upload=False, live=False, max_minutes=0.05)
     assert _t.time() - t0 < 20 and calls["d"] >= 1 and calls["r"] >= 1
+
+
+def test_check_reports_missing_secrets(monkeypatch, tmp_path):
+    from gta6clips import check
+
+    for n in ("TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET", "YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
+              "YOUTUBE_REFRESH_TOKEN", "TIKTOK_SESSIONID", "GITHUB_TOKEN", "GH_MODELS_TOKEN"):
+        monkeypatch.delenv(n, raising=False)
+    monkeypatch.setenv("TWITCH_USER_TOKEN_FILE", str(tmp_path / "yok.json"))
+    results = {name: (ok, msg) for name, ok, msg in check.run_checks(cfg())}
+    assert not results["Twitch API"][0]
+    assert not results["Twitch girişi (canlı avcı)"][0]
+    assert "YOUTUBE_REFRESH_TOKEN" in results["YouTube"][1]
+    assert "TIKTOK_SESSIONID" in results["TikTok"][1]
+    table = check.render(check.run_checks(cfg()))
+    assert table.startswith("## Bağlantı kontrolü") and "❌" in table

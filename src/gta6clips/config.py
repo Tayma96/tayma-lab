@@ -87,11 +87,22 @@ def load_config(path: str | os.PathLike = "config.yaml") -> dict[str, Any]:
 
 def bootstrap_secrets() -> None:
     """Bilgisayarsız kurulum: GitHub Secrets'tan gelen ortam değişkenlerini, kodun beklediği token
-    dosyalarına çevirir (dosya zaten varsa dokunmaz; yenilenmiş token korunur)."""
+    dosyalarına çevirir. Dosyadaki refresh token secret'takiyle aynıysa dokunmaz (yenilenmiş erişim
+    token'ı korunur); secret değiştiyse (ör. 7 günde bir yenilenen test modu girişi) yenisini yazar."""
     import json
 
     yt = Path(env("YOUTUBE_TOKEN_FILE", "secrets/youtube_token.json"))
-    if not yt.exists() and env("YOUTUBE_REFRESH_TOKEN") and env("YOUTUBE_CLIENT_ID"):
+    new_rt = env("YOUTUBE_REFRESH_TOKEN")
+    if not new_rt or not env("YOUTUBE_CLIENT_ID"):
+        return
+    current: dict = {}
+    if yt.exists():
+        try:
+            current = json.loads(yt.read_text())
+        except ValueError:
+            current = {}
+    if (current.get("refresh_token") != new_rt or current.get("client_id") != env("YOUTUBE_CLIENT_ID")
+            or current.get("client_secret") != env("YOUTUBE_CLIENT_SECRET")):
         yt.parent.mkdir(parents=True, exist_ok=True)
         yt.write_text(json.dumps({
             "type": "authorized_user", "client_id": env("YOUTUBE_CLIENT_ID"),

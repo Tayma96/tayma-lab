@@ -35,6 +35,7 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--device", action="store_true",
                    help="Twitch: bilgisayarsız giriş (twitch.tv/activate'te kod girilir; GitHub Actions'ta çalışır)")
     sub.add_parser("status", help="Veritabanı özeti")
+    sub.add_parser("check", help="Bağlantı kontrolü: Twitch, YouTube, TikTok girişleri çalışıyor mu (yükleme yapmaz)")
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
@@ -53,6 +54,23 @@ def main(argv: list[str] | None = None) -> None:
             from .twitch import TwitchUser
             u = TwitchUser.from_env()
             u.authorize_device() if args.device else u.authorize()
+        return
+
+    if args.cmd == "check":
+        import os
+        import sys
+
+        from .check import render, run_checks
+
+        results = run_checks(cfg)
+        report = render(results)
+        print(report)
+        summary = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary:
+            with open(summary, "a", encoding="utf-8") as f:
+                f.write(report + "\n")
+        if not all(ok for _, ok, _ in results):
+            sys.exit(1)
         return
 
     db = pipeline.open_db(cfg)

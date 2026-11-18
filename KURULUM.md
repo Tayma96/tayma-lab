@@ -120,7 +120,19 @@ Repo'da **config.yaml** dosyasını aç → kalem simgesi → `brand: ""` satır
 
 ---
 
-## 6. Başlat
+## 6. Bağlantıları kontrol et
+
+Actions → **Bağlantı kontrolü** → **Run workflow**. Bir dakikada biter; işe dokununca özet sayfasında
+Twitch, YouTube ve TikTok için ✅/❌ tablosu çıkar (YouTube'da kanal adını da gösterir). Hiçbir şey yüklemez.
+❌ olan satırda ne yapman gerektiği yazar.
+
+> **YouTube test modundaysa** (uygulamayı "Publish app" ile yayına alamadıysan): giriş 7 günde bir sona
+> erer. Kontrol "invalid_grant" derse OAuth Playground'dan yeni refresh token al ve GitHub'da
+> `YOUTUBE_REFRESH_TOKEN` secret'ını güncelle (kalem simgesi → Update secret). Sistem yenisini kendisi algılar.
+
+---
+
+## 7. Başlat
 
 **Önce kontrol turu (önerilir):** Actions → **GTA 6 klipleri** → **Run workflow** →
 "Yükleme yapılsın mı" kutusunun **işaretini kaldır**, "Kaç dakika" = `40` → **Run workflow**.
