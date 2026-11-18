@@ -31,7 +31,11 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install .
+      - run: pip install '.[captions]'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/argos-en-tr
+          key: argos-en-tr-1_5
       - uses: actions/cache/restore@v4
         with:
           path: state.enc

@@ -130,6 +130,15 @@ def _telegram(cfg: dict) -> tuple[bool, str]:
         return False, f"Hata: {str(e)[:200]}"
 
 
+def _free_translate(cfg: dict) -> tuple[bool, str]:
+    from . import translate_free
+
+    out = translate_free.translate(["oh my god", "this is insane", "run, the cops are coming"])
+    if not out:
+        return False, "Ücretsiz çeviri modeli çalışmadı (ayrıntı logda): TikTok'ta İngilizce klipler altyazısız"
+    return True, "Örnek: " + " / ".join(out)
+
+
 def _launch(cfg: dict) -> tuple[bool, str]:
     from . import launch
 
@@ -171,6 +180,7 @@ def run_checks(cfg: dict) -> list[tuple[str, bool, str]]:
         ("YouTube", *_youtube()),
         ("TikTok", *_tiktok(cfg)),
         ("Yapay zeka", *_ai(cfg)),
+        ("Türkçe çeviri (ücretsiz)", *_free_translate(cfg)),
         ("Telegram", *_telegram(cfg)),
         ("Lansman modu", *_launch(cfg)),
     ]

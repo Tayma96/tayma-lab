@@ -221,3 +221,18 @@ def test_transcribe_passes_array_not_path(monkeypatch, tmp_path):
 
     monkeypatch.setattr(transcribe, "_MODEL", Broken())
     assert transcribe.transcribe(src, "tiny", "en") == []      # döküm hatası klibi düşürmez
+
+
+def test_turkish_falls_back_to_free_translation(monkeypatch):
+    from gta6clips import localize, translate_free
+
+    monkeypatch.setattr(localize.llm, "structured", lambda *a, **k: None)
+    monkeypatch.setattr(translate_free, "translate", lambda texts: [f"tr:{t}" for t in texts])
+    words = [Word(0.0, 0.4, "oh"), Word(0.5, 0.9, "no."), Word(2.0, 2.5, "run")]
+    tr_words, meta = localize.to_turkish(cfg(), words, {"title": "t", "hook": "h", "hashtags": []}, "kai", "en", "c1")
+    assert [w.text for w in tr_words][:2] == ["tr:oh", "no."] and meta["hashtags"]
+    monkeypatch.setattr(translate_free, "translate", lambda texts: None)
+    tr_words, _ = localize.to_turkish(cfg(), words, {"title": "t", "hook": "h", "hashtags": []}, "kai", "en", "c1")
+    assert tr_words == []                                   # çeviri yoksa yanlış dilde altyazı koyma
+    tr_words, _ = localize.to_turkish(cfg(), words, {"title": "t", "hook": "h", "hashtags": []}, "kai", "tr", "c1")
+    assert tr_words == words                                # Türkçe yayın: kendi altyazısı

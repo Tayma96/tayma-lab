@@ -37,7 +37,7 @@ cut:
 # none:   yapay zeka yok, ücretsiz sinyallerle puanlama (izlenme hızı, sohbet, ses, hareket, konuşma)
 # claude: ÜCRETLİ, kullanma
 ai:
-  provider: github
+  provider: none            # GitHub Models bu hesapta yanıt vermiyor (her isteğe "OK"); çalışırsa: github
   github_model: openai/gpt-4o-mini
   max_images: 4
 

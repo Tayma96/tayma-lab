@@ -85,8 +85,17 @@ def to_turkish(cfg: dict, words: list[Word], meta_en: dict, broadcaster: str, so
             f"Caption chunks ({len(groups)}):\n{numbered or '(no speech)'}")
     res = llm.structured(cfg, SYSTEM, text, Localized)
     if res is None:
-        log.info("Türkçe çeviri yapılamadı (yapay zeka yok/hakkı doldu): şablon başlık")
-        return (words if source_lang.startswith("tr") else []), fallback(broadcaster, clip_id)
+        if source_lang.startswith("tr"):
+            return words, fallback(broadcaster, clip_id)
+        # Yapay zeka yok: ücretsiz çevrimdışı modelle altyazıyı çevir, başlık şablondan
+        from . import translate_free
+
+        out = translate_free.translate([" ".join(w.text for w in g) for g in groups])
+        if out is not None and len(out) == len(groups):
+            log.info("Türkçe altyazı ücretsiz modelle çevrildi (%d öbek)", len(groups))
+            return spread(groups, out), fallback(broadcaster, clip_id)
+        log.info("Türkçe çeviri yapılamadı: altyazısız, şablon başlık")
+        return [], fallback(broadcaster, clip_id)
     if source_lang.startswith("tr"):
         tr_words = words
     elif len(res.chunks) == len(groups):

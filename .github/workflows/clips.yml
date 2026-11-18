@@ -61,6 +61,12 @@ jobs:
           path: ~/.cache/huggingface
           key: whisper-models-v1
 
+      - name: Türkçe çeviri modelini önbellekten al
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/argos-en-tr
+          key: argos-en-tr-1_5
+
       - name: Önceki durumu al
         uses: actions/cache/restore@v4
         with:

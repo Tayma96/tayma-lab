@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-captions = ["faster-whisper>=1.1"]
+captions = ["faster-whisper>=1.1", "sentencepiece>=0.2"]
 tiktok-browser = ["tiktok-uploader>=1.2,<2"]
 dev = ["pytest>=8"]
 
