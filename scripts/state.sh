@@ -10,7 +10,7 @@ if [ -z "${STATE_KEY:-}" ]; then
   exit 1
 fi
 
-FILES=(data/clips.db data/facecams.json secrets/twitch_user_token.json secrets/youtube_token.json secrets/tiktok_token.json)
+FILES=(data/clips.db data/facecams.json data/telegram.json secrets/twitch_user_token.json secrets/youtube_token.json secrets/tiktok_token.json)
 
 case "$1" in
   pack)

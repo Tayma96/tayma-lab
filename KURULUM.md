@@ -120,6 +120,20 @@ Repo'da **config.yaml** dosyasını aç → kalem simgesi → `brand: ""` satır
 
 ---
 
+## 5b. Telegram (lansman videoları telefonuna gelsin, 3 dakika)
+
+YouTube, Google denetiminden geçmemiş uygulamaların yüklediği videoları gizli tutar. Bu yüzden lansman anı
+gibi kritik klipler hazır olur olmaz Telegram'dan telefonuna gelir; oradan **Paylaş** ile YouTube Shorts,
+Instagram Reels, X'e saniyeler içinde yüklersin.
+
+1. Telegram'da **@BotFather**'ı aç → **/newbot** yaz → bota bir ad ver (örn. `GTA6 Klip`) → kullanıcı adı ver
+   (sonu `bot` ile bitmeli, örn. `berkay_gta6_bot`).
+2. BotFather'ın verdiği uzun **token**'ı kopyala → GitHub Secrets'a ekle: Name `TELEGRAM_BOT_TOKEN`.
+3. BotFather'ın verdiği bağlantıdan kendi botunu aç → **Başlat** (/start) de. (Sistem seni buradan tanır.)
+4. Actions → **Bağlantı kontrolü** → **Run workflow**. Telegram satırı ✅ olunca bota bir test mesajı gelir.
+
+---
+
 ## 6. Bağlantıları kontrol et
 
 Actions → **Bağlantı kontrolü** → **Run workflow**. Bir dakikada biter; işe dokununca özet sayfasında

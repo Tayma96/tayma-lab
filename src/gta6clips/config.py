@@ -58,6 +58,25 @@ DEFAULTS: dict[str, Any] = {
         "peak_hours_utc": [],
         "max_age_hours": 36,
     },
+    "launch": {
+        "enabled": True,
+        # GTA 6 yerel gece yarısı açılıyor: İngiltere, ABD doğu (en büyük yayıncılar), ABD batı
+        "moments_utc": ["2026-11-19T00:00:00Z", "2026-11-19T05:00:00Z", "2026-11-19T08:00:00Z"],
+        "before_minutes": 20,
+        "after_minutes": 90,
+        "watch_channels": [],
+        "top_channels": 12,
+        "min_viewers": 3000,
+        "spike_ratio": 2.0,
+        "min_weight": 12,
+        "cooldown_seconds": 60,
+        "max_clips_per_hour": 40,
+        "refresh_minutes": 2,
+        "bypass_quality": True,
+        "reserve": {"youtube": 3, "tiktok": 5},
+        "reserve_hours": 24,
+    },
+    "notify": {"telegram": True, "min_quality": 8},
     "paths": {"data_dir": "data"},
 }
 

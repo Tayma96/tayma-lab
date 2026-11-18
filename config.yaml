@@ -74,6 +74,36 @@ upload:
   peak_hours_utc: []        # boş = her saat. Örn ABD akşamı: [22, 23, 0, 1, 2, 3, 4]
   max_age_hours: 36         # bundan eski klipler artık yüklenmez (bayat içerik)
 
+# --- Lansman modu: GTA 6'nın açıldığı anlar (yerel gece yarısı) ---
+# Bu anların 20 dk öncesinden 90 dk sonrasına kadar: en büyük yayınlar + aşağıdaki tanınmış yayıncılar
+# (Just Chatting'de açsalar bile) dinlenir, klipler kalite kapısına takılmadan, sıra beklemeden işlenir,
+# hazır video Telegram'dan telefonuna gelir. Günlük yükleme hakkının bir kısmı bu anlara ayrılır.
+launch:
+  enabled: true
+  moments_utc:
+    - "2026-11-19T00:00:00Z"   # İngiltere gece yarısı (03:00 TSİ)
+    - "2026-11-19T05:00:00Z"   # ABD doğu gece yarısı (08:00 TSİ) - en büyük yayıncılar
+    - "2026-11-19T08:00:00Z"   # ABD batı gece yarısı (11:00 TSİ)
+  watch_channels:              # Twitch kullanıcı adları; istediğini ekle/çıkar
+    - kaicenat
+    - xqc
+    - summit1g
+    - caseoh_
+    - jynxzi
+    - zackrawrr
+    - hasanabi
+    - moistcr1tikal
+    - lirik
+    - shroud
+    - sodapoppin
+    - tarik
+  reserve: {youtube: 3, tiktok: 5}   # lansmandan önceki 24 saatte sıradan kliplerin bırakacağı hak
+
+# --- Telegram: lansman klipleri ve 8+ puanlı videolar telefonuna gelir (TELEGRAM_BOT_TOKEN secret'ı) ---
+notify:
+  telegram: true
+  min_quality: 8
+
 schedule:
   discover_minutes: 15
   stats_hours: 3            # YouTube izlenmelerini çekip yayıncı ağırlıklarını güncelle

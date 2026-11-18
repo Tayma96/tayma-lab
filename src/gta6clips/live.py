@@ -8,6 +8,7 @@ import threading
 import time
 from collections import deque
 
+from . import launch
 from .chat import ChatSpikeDetector, TwitchChat
 from .config import env
 from .db import DB
@@ -37,6 +38,24 @@ def live_score(strength: float, viewers: int) -> float:
     return round(strength * math.log10(max(viewers, 10)) * 1000, 1)
 
 
+def pick_channels(category_streams: list[dict], watched_streams: list[dict], lc: dict,
+                  blocked: set[str]) -> dict[str, dict]:
+    """Kategorideki en büyük yayınlar + (lansmanda) izleme listesindeki canlı yayıncılar."""
+    out: dict[str, dict] = {}
+    for s in watched_streams:                          # tanınmış yayıncılar önce, kategori fark etmez
+        login = s["user_login"].lower()
+        if login not in blocked:
+            out[login] = s
+    top = [s for s in category_streams
+           if s["viewer_count"] >= lc["min_viewers"] and s["user_login"].lower() not in blocked]
+    limit = lc["top_channels"] + len(out)
+    for s in top:
+        if len(out) >= limit:
+            break
+        out.setdefault(s["user_login"].lower(), s)
+    return out
+
+
 def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
     lc = cfg["live"]
     stop = stop or threading.Event()
@@ -49,7 +68,7 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
     chat = TwitchChat()
     detectors: dict[str, ChatSpikeDetector] = {}
     streams: dict[str, dict] = {}
-    pending: list[tuple[float, str, str, float]] = []  # (oluşturma zamanı, klip id, yayıncı, puan)
+    pending: list[tuple] = []  # (oluşturma zamanı, klip id, yayıncı, puan, kaynak)
     budget = ClipBudget(lc["max_clips_per_hour"])
     blocked = set(cfg.get("blocklist") or [])
     next_refresh = 0.0
@@ -57,15 +76,23 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
     while not stop.is_set():
         now = time.time()
         if now >= next_refresh:
+            lc = launch.live_settings(cfg)
+            is_launch = launch.active(cfg)
+            budget.per_hour = lc["max_clips_per_hour"]
             try:
-                top = [s for s in tw.top_streams(gid, cfg["discovery"].get("language"))
-                       if s["viewer_count"] >= lc["min_viewers"] and s["user_login"].lower() not in blocked]
-                streams = {s["user_login"].lower(): s for s in top[: lc["top_channels"]]}
+                category = tw.top_streams(gid, cfg["discovery"].get("language"))
+                watched = []
+                if is_launch and launch.watch_channels(cfg):
+                    watched = [w for w in tw.streams_by_login(launch.watch_channels(cfg))
+                               if w["viewer_count"] >= 500]
+                streams = pick_channels(category, watched, lc, blocked)
                 chat.set_channels(set(streams))
                 for ch in streams:
-                    detectors.setdefault(ch, ChatSpikeDetector(
+                    det = detectors.setdefault(ch, ChatSpikeDetector(
                         ratio=lc["spike_ratio"], min_weight=lc["min_weight"], cooldown=lc["cooldown_seconds"]))
-                log.info("Canlı izleniyor (%d): %s", len(streams), ", ".join(list(streams)[:8]))
+                    det.ratio, det.min_weight, det.cooldown = lc["spike_ratio"], lc["min_weight"], lc["cooldown_seconds"]
+                log.info("%sCanlı izleniyor (%d): %s", "🚀 LANSMAN | " if is_launch else "", len(streams),
+                         ", ".join(list(streams)[:12]))
             except Exception:
                 log.exception("Canlı yayın listesi alınamadı")
             next_refresh = now + lc["refresh_minutes"] * 60
@@ -87,7 +114,8 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
                 score = live_score(strength, s["viewer_count"])
                 log.info("🔥 %s sohbeti patladı (x%.1f, %d izleyici) -> klip %s", channel, strength,
                          s["viewer_count"], clip_id)
-                pending.append((time.time(), clip_id, s["user_name"], score))
+                pending.append((time.time(), clip_id, s["user_name"], score,
+                                "launch" if launch.active(cfg) else "live"))
 
         # Twitch klibi işlemesi ~15 sn sürer; hazır olanları kuyruğa al
         ready_after = [p for p in pending if time.time() - p[0] >= 20]
@@ -102,7 +130,7 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
                 if c:
                     db.add_clip({"id": c["id"], "broadcaster": p[2], "title": c.get("title", ""), "url": c["url"],
                                  "views": c.get("view_count", 0), "duration": c.get("duration", 30),
-                                 "created_at": c.get("created_at"), "score": p[3], "source": "live"})
+                                 "created_at": c.get("created_at"), "score": p[3], "source": p[4]})
                     pending.remove(p)
                 elif time.time() - p[0] > 120:
                     log.info("Klip %s hazır olmadı, atlandı", p[1])

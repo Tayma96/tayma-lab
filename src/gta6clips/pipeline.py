@@ -11,7 +11,7 @@ import threading
 import time
 from pathlib import Path
 
-from . import analyze, captions, download, editor, highlights, transcribe
+from . import analyze, captions, download, editor, highlights, launch, notify, transcribe
 from .config import env
 from .db import DB
 from .facecam import FacecamCache
@@ -42,6 +42,9 @@ def resolve_facecam(cfg: dict, broadcaster: str, src: Path) -> dict | None:
 
 # ---------------------------------------------------------------- keşif
 def discover(cfg: dict, db: DB) -> int:
+    if launch.in_campaign(cfg):
+        log.info("Keşif lansman süresince duraklatıldı (kurgu ve yapay zeka hakkı lansman kliplerine)")
+        return 0
     tw = Twitch(env("TWITCH_CLIENT_ID"), env("TWITCH_CLIENT_SECRET"))
     d = cfg["discovery"]
     gid = tw.game_id(cfg["game_name"])
@@ -61,7 +64,7 @@ def shift_words(words: list[transcribe.Word], start: float, end: float) -> list[
 
 
 def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int, src: Path,
-            hook_hint: str = "", signals: dict | None = None) -> tuple[Path | None, dict]:
+            hook_hint: str = "", signals: dict | None = None, launch_clip: bool = False) -> tuple[Path | None, dict]:
     """Analiz eder; kalite kapısından geçerse kırpıp dikey video üretir.
     Dönüş: (video yolu veya reddedildiyse None, analiz sözlüğü)"""
     dd = data_dir(cfg)
@@ -70,9 +73,16 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
     words: list[transcribe.Word] = []
     if r["captions"]:
         words = transcribe.transcribe(src, r["whisper_model"], cfg["discovery"].get("language"))
-    a = analyze.analyze(src, total, words, broadcaster, title or hook_hint, views, cfg, clip_id=clip_id,
+    clip_title = title or hook_hint
+    if launch_clip:
+        clip_title = (f"{clip_title} [LAUNCH MOMENT: {broadcaster} is opening/starting GTA 6 for the very first "
+                      "time on launch night; the title screen, loading or first seconds ARE the content]")
+    a = analyze.analyze(src, total, words, broadcaster, clip_title, views, cfg, clip_id=clip_id,
                         signals=signals or {"views": views})
-    if not a["is_gta6"] or a["score"] < q["min_score"]:
+    bypass = launch_clip and cfg.get("launch", {}).get("bypass_quality", True)
+    if bypass and (not a["is_gta6"] or a["score"] < q["min_score"]):
+        log.info("Lansman klibi kalite kapısını atladı [%s] puan=%s gta6=%s", broadcaster, a["score"], a["is_gta6"])
+    elif not a["is_gta6"] or a["score"] < q["min_score"]:
         log.info("Elendi [%s] puan=%s gta6=%s: %s", broadcaster, a["score"], a["is_gta6"], a["reason"])
         return None, a
 
@@ -99,20 +109,30 @@ def produce(cfg: dict, *, clip_id: str, broadcaster: str, title: str, views: int
 
 
 def render_pending(cfg: dict, db: DB, limit: int | None = None) -> int:
+    """Her klipten önce kuyruğu yeniden sorgular: yeni gelen bir lansman klibi en fazla bir kurgu bekler."""
     limit = limit or cfg["discovery"]["max_clips_per_run"]
     done = 0
-    for row in db.clips_with_status("new", limit):
+    for _ in range(limit):
+        rows = db.clips_with_status("new", 1)
+        if not rows:
+            break
+        row = rows[0]
+        launch_clip = row["source"] == "launch"
         try:
             src = download.download_clip(row["url"], data_dir(cfg) / "raw", row["id"])
             out, a = produce(cfg, clip_id=row["id"], broadcaster=row["broadcaster"], title=row["title"] or "",
                              views=row["views"], src=src,
-                             signals={"views": row["views"], "score": row["score"], "source": row["source"]})
+                             signals={"views": row["views"], "score": row["score"], "source": row["source"]},
+                             launch_clip=launch_clip)
             analysis = {k: v for k, v in a.items() if k != "meta"}
             if out is None:
                 db.mark_rejected(row["id"], a["score"], a["reason"], analysis)
             else:
                 db.mark_rendered(row["id"], str(out), a["meta"], a["score"], analysis)
                 done += 1
+                if launch_clip or (a["score"] or 0) >= cfg.get("notify", {}).get("min_quality", 8):
+                    notify.send_video(cfg, out, notify.caption(a["meta"], row["broadcaster"], a["score"],
+                                                               launch_clip))
         except Exception as e:  # tek klip hatası tüm akışı durdurmasın
             log.exception("Klip işlenemedi: %s", row["id"])
             db.mark_failed(row["id"], str(e))
@@ -189,6 +209,9 @@ def platform_ready(cfg: dict, platform: str) -> bool:
     return ok
 
 
+_UPLOAD_BACKOFF: dict[str, float] = {}
+
+
 def upload_pending(cfg: dict, db: DB) -> int:
     from .uploaders import tiktok, tiktok_browser, youtube
 
@@ -200,9 +223,16 @@ def upload_pending(cfg: dict, db: DB) -> int:
         pcfg = up[platform]
         if not pcfg.get("enabled") or not platform_ready(cfg, platform):
             continue
+        if time.time() < _UPLOAD_BACKOFF.get(platform, 0):
+            continue  # son hatadan sonra kısa mola (kota/yetki sorununda her 30 sn'de denemesin)
+        reserve = launch.reserve_for(cfg, platform)
         for row in db.pending_uploads(platform, max_age_hours=up.get("max_age_hours")):
-            if not db.can_upload(platform, pcfg["max_per_day"], up["min_gap_minutes"], up.get("peak_hours_utc")):
-                break
+            urgent = row.get("source") == "launch"
+            limit = pcfg["max_per_day"] if urgent else max(0, pcfg["max_per_day"] - reserve)
+            if not db.can_upload(platform, limit, up["min_gap_minutes"], up.get("peak_hours_utc"), urgent=urgent):
+                if urgent:
+                    break  # günlük hak bitti
+                continue  # sıradan klip bekler; listede lansman klibi varsa o yine geçebilir
             try:
                 remote = fn(Path(row["video_path"]), json.loads(row["meta_json"]), cfg)
                 db.record_upload(row["id"], platform, "done", remote)
@@ -211,6 +241,7 @@ def upload_pending(cfg: dict, db: DB) -> int:
             except Exception as e:
                 log.exception("%s yükleme hatası: %s", platform, row["id"])
                 db.record_upload(row["id"], platform, "failed", detail=str(e)[:1000])
+                _UPLOAD_BACKOFF[platform] = time.time() + (120 if row.get("source") == "launch" else 600)
                 break  # yetki/kota sorunlarında aynı turda tekrar tekrar deneme
     tiktok_browser.close()
     return count
@@ -266,10 +297,10 @@ def run_forever(cfg: dict, upload: bool = True, live: bool = True, max_minutes: 
     deadline = time.time() + max_minutes * 60 if max_minutes else None
     jobs = [
         ("keşif", s["discover_minutes"] * 60, lambda db: discover(cfg, db)),
-        ("kurgu", 60, lambda db: render_pending(cfg, db, 5)),
+        ("kurgu", 15, lambda db: render_pending(cfg, db, 5)),
     ]
     if upload:
-        jobs.append(("yükleme", 300, lambda db: upload_pending(cfg, db)))
+        jobs.append(("yükleme", 30, lambda db: upload_pending(cfg, db)))
         if cfg["upload"]["youtube"].get("enabled"):
             jobs.append(("istatistik", s["stats_hours"] * 3600, lambda db: refresh_stats(cfg, db)))
     threads = []
@@ -283,6 +314,9 @@ def run_forever(cfg: dict, upload: bool = True, live: bool = True, max_minutes: 
     for t in threads:
         t.start()
     log.info("Çalışıyor: %s (durdurmak için Ctrl+C)", ", ".join(t.name for t in threads))
+    log.info("%s", launch.describe(cfg))
+    if notify.enabled(cfg):  # bota yazılan /start 24 saat sonra kaybolur: sohbeti şimdiden bul ve kaydet
+        log.info("Telegram: %s", "sohbet hazır" if notify.chat_id() else "sohbet yok, bota /start yaz")
     try:
         while any(t.is_alive() for t in threads):
             if deadline and time.time() >= deadline:

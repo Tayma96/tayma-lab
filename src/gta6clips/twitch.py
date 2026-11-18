@@ -61,6 +61,13 @@ class Twitch:
             params["language"] = language
         return self._get("/streams", params).get("data", [])
 
+    def streams_by_login(self, logins: list[str]) -> list[dict]:
+        """Bu kullanıcılardan şu an canlı olanlar (kategori fark etmez), izleyiciye göre sıralı."""
+        out: list[dict] = []
+        for i in range(0, len(logins), 100):
+            out += self._get("/streams", {"user_login": logins[i:i + 100], "first": 100}).get("data", [])
+        return sorted(out, key=lambda s: s.get("viewer_count", 0), reverse=True)
+
     def top_clips(self, game_id: str, lookback_hours: int, pages: int = 3) -> list[dict]:
         started = (datetime.now(timezone.utc) - timedelta(hours=lookback_hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
         params = {"game_id": game_id, "first": 100, "started_at": started}

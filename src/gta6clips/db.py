@@ -65,7 +65,7 @@ def upload_priority(row: dict, now: datetime | None = None, half_life_hours: flo
     born = parse_ts(row.get("created_at")) or parse_ts(row.get("added_at")) or now
     age_h = max(0.0, (now - born).total_seconds() / 3600)
     fresh = 0.5 ** (age_h / half_life_hours)
-    live_bonus = 1.25 if row.get("source") == "live" else 1.0
+    live_bonus = {"launch": 100.0, "live": 1.25}.get(row.get("source"), 1.0)  # lansman anı her şeyin önünde
     return (quality * 10 + pop * 4) * fresh * live_bonus
 
 
@@ -97,7 +97,8 @@ class DB:
     def clips_with_status(self, status: str, limit: int = 100) -> list[sqlite3.Row]:
         # Canlı yakalanan klipler en taze içerik: önce onlar
         return list(self.conn.execute(
-            "SELECT * FROM clips WHERE status=? ORDER BY (source='live') DESC, score DESC LIMIT ?", (status, limit)))
+            "SELECT * FROM clips WHERE status=? ORDER BY (source='launch') DESC, (source='live') DESC, score DESC"
+            " LIMIT ?", (status, limit)))
 
     def mark_rendered(self, clip_id: str, video_path: str, meta: dict, quality: float | None = None,
                       analysis: dict | None = None) -> None:
@@ -151,11 +152,14 @@ class DB:
         return datetime.fromisoformat(row[0]) if row and row[0] else None
 
     def can_upload(self, platform: str, max_per_day: int, min_gap_minutes: int,
-                   peak_hours_utc: list[int] | None = None) -> bool:
+                   peak_hours_utc: list[int] | None = None, urgent: bool = False) -> bool:
+        """urgent=True (lansman anı): saat ve bekleme kısıtlarını atlar, sadece günlük hakka bakar."""
         now = now_utc()
-        if peak_hours_utc and now.hour not in peak_hours_utc:
-            return False
         if self.uploads_since(platform, now - timedelta(days=1)) >= max_per_day:
+            return False
+        if urgent:
+            return True
+        if peak_hours_utc and now.hour not in peak_hours_utc:
             return False
         last = self.last_upload_at(platform)
         return last is None or now - last >= timedelta(minutes=min_gap_minutes)

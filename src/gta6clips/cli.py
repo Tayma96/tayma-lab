@@ -92,8 +92,15 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(db.stats(), indent=2, ensure_ascii=False))
     elif args.cmd == "run":
         if args.loop:
-            pipeline.run_forever(cfg, upload=not args.no_upload, live=not args.no_live,
-                                 max_minutes=args.max_minutes)
+            minutes = args.max_minutes
+            if minutes:
+                from . import launch
+                adjusted = launch.adjust_run_minutes(cfg, minutes)
+                if adjusted != minutes:
+                    logging.getLogger(__name__).info(
+                        "Tur süresi %s -> %s dk (lansman penceresinin ortasında bitmesin)", minutes, adjusted)
+                minutes = adjusted
+            pipeline.run_forever(cfg, upload=not args.no_upload, live=not args.no_live, max_minutes=minutes)
         else:
             pipeline.discover(cfg, db)
             pipeline.render_pending(cfg, db)

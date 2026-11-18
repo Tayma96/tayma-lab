@@ -99,6 +99,31 @@ def _ai(cfg: dict) -> tuple[bool, str]:
     return True, f"Sağlayıcı: {provider}"
 
 
+def _telegram(cfg: dict) -> tuple[bool, str]:
+    from . import notify
+
+    if not env("TELEGRAM_BOT_TOKEN"):
+        return False, "Eksik secret: TELEGRAM_BOT_TOKEN (lansman videoları telefonuna gelsin diye)"
+    try:
+        me = requests.get(f"https://api.telegram.org/bot{env('TELEGRAM_BOT_TOKEN')}/getMe", timeout=30)
+        if me.status_code != 200:
+            return False, "Bot token'ı geçersiz: @BotFather'dan aldığın token'ı kontrol et"
+        bot = me.json()["result"].get("username")
+        cid = notify.chat_id(save=False)
+        if not cid:
+            return False, f"@{bot} bulundu ama sohbet yok: Telegram'da @{bot} aç ve Başlat (/start) de"
+        ok = notify.send_text(cfg, "✅ GTA 6 klip botu bağlandı. Lansman anları buraya video olarak gelecek.")
+        return ok, f"@{bot} bağlı, test mesajı gönderildi" if ok else f"@{bot}: mesaj gönderilemedi"
+    except Exception as e:  # noqa: BLE001
+        return False, f"Hata: {str(e)[:200]}"
+
+
+def _launch(cfg: dict) -> tuple[bool, str]:
+    from . import launch
+
+    return True, launch.describe(cfg)
+
+
 def run_checks(cfg: dict) -> list[tuple[str, bool, str]]:
     return [
         ("Twitch API", *_twitch_app(cfg)),
@@ -106,6 +131,8 @@ def run_checks(cfg: dict) -> list[tuple[str, bool, str]]:
         ("YouTube", *_youtube()),
         ("TikTok", *_tiktok(cfg)),
         ("Yapay zeka", *_ai(cfg)),
+        ("Telegram", *_telegram(cfg)),
+        ("Lansman modu", *_launch(cfg)),
     ]
 
 
