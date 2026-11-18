@@ -24,10 +24,13 @@ class ClipBudget:
         self.per_hour = per_hour
         self.times: deque[float] = deque()
 
-    def take(self, now: float) -> bool:
+    def available(self, now: float) -> bool:
         while self.times and self.times[0] < now - 3600:
             self.times.popleft()
-        if len(self.times) >= self.per_hour:
+        return len(self.times) < self.per_hour
+
+    def take(self, now: float) -> bool:
+        if not self.available(now):
             return False
         self.times.append(now)
         return True
@@ -89,6 +92,7 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
     detectors: dict[str, ChatSpikeDetector] = {}
     streams: dict[str, dict] = {}
     pending: list[tuple] = []  # (oluşturma zamanı, klip id, yayıncı, puan, kaynak, anın saniyesi)
+    no_clip: set[str] = set()  # klip almaya izin vermeyen kanallar
     scheduled: list[tuple] = []  # (istek zamanı, kanal, yayın, güç, kaynak): an + tepki klibe sığsın diye bekler
     budget = ClipBudget(lc["max_clips_per_hour"])
     blocked = set(cfg.get("blocklist") or [])
@@ -111,8 +115,10 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
                 streams = pick_channels(category, watched, lc, blocked, local)
                 chat.set_channels(set(streams))
                 for ch in streams:
+                    # Isınma = ortalama penceresi (180 sn): ortalama oturmadan sahte patlama sayılmasın
                     det = detectors.setdefault(ch, ChatSpikeDetector(
-                        ratio=lc["spike_ratio"], min_weight=lc["min_weight"], cooldown=lc["cooldown_seconds"]))
+                        ratio=lc["spike_ratio"], min_weight=lc["min_weight"], cooldown=lc["cooldown_seconds"],
+                        warmup=190))
                     det.ratio, det.min_weight, det.cooldown = lc["spike_ratio"], lc["min_weight"], lc["cooldown_seconds"]
                 log.info("%sCanlı izleniyor (%d): %s", "🚀 LANSMAN | " if is_launch else "", len(streams),
                          ", ".join(list(streams)[:12]))
@@ -126,7 +132,9 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
             if not det or not s:
                 continue
             strength = det.add(time.time(), text)
-            if strength is None or not budget.take(time.time()):
+            if strength is None or channel in no_clip or not budget.available(time.time()):
+                continue
+            if any(x[1] == channel for x in scheduled):
                 continue
             delay, _ = clip_timing(lc)
             log.info("🔥 %s sohbeti patladı (x%.1f, %d izleyici) -> %.0f sn sonra klip alınacak", channel,
@@ -141,7 +149,12 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
             except Exception:
                 log.exception("Klip oluşturma hatası: %s", channel)
                 continue
-            if clip_id:
+            if not clip_id:
+                # Yayıncı klibi kısıtlamış (takipçi/abone): bu turda bir daha deneme, hakkı boşa harcama
+                no_clip.add(channel)
+                log.info("%s kanalında klip alınamıyor (kısıtlı), bu tur atlanacak", channel)
+                continue
+            if budget.take(time.time()):
                 score = live_score(strength, s["viewer_count"])
                 log.info("🎬 %s klibi alındı: %s", channel, clip_id)
                 pending.append((time.time(), clip_id, s["user_name"], score, source, clip_timing(lc)[1],
@@ -163,6 +176,6 @@ def run_live(cfg: dict, db: DB, stop: threading.Event | None = None) -> None:
                                  "created_at": c.get("created_at"), "score": p[3], "source": p[4],
                                  "moment_at": p[5], "language": p[6]})
                     pending.remove(p)
-                elif time.time() - p[0] > 120:
+                elif time.time() - p[0] > 300:  # yoğunlukta Twitch klibi geç işleyebiliyor
                     log.info("Klip %s hazır olmadı, atlandı", p[1])
                     pending.remove(p)

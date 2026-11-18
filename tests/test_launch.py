@@ -183,3 +183,40 @@ def test_pick_channels_adds_turkish_streams():
           {"user_login": "kucuk", "viewer_count": 100, "language": "tr"}]
     out = pick_channels(en, [], lc, set(), tr)
     assert set(out) == {"en0", "en1", "elraenn"}
+
+
+def test_transcribe_passes_array_not_path(monkeypatch, tmp_path):
+    """faster-whisper'a dosya yolu verilirse yeni PyAV ile çöküyor: ses dizisi verilmeli."""
+    import subprocess
+    import sys
+    import types
+
+    import numpy as np
+
+    from gta6clips import transcribe
+
+    src = tmp_path / "a.mp4"
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=2",
+                    str(src)], check=True)
+    seen = {}
+
+    class FakeModel:
+        def __init__(self, *a, **k):
+            pass
+
+        def transcribe(self, audio, **k):
+            seen["type"] = type(audio)
+            w = types.SimpleNamespace(word=" hey", start=0.1, end=0.4)
+            return [types.SimpleNamespace(words=[w])], None
+
+    monkeypatch.setitem(sys.modules, "faster_whisper", types.SimpleNamespace(WhisperModel=FakeModel))
+    monkeypatch.setattr(transcribe, "_MODEL", None)
+    words = transcribe.transcribe(src, "tiny", "en")
+    assert seen["type"] is np.ndarray and words[0].text == "hey"
+
+    class Broken(FakeModel):
+        def transcribe(self, audio, **k):
+            raise TypeError("metadata_errors")
+
+    monkeypatch.setattr(transcribe, "_MODEL", Broken())
+    assert transcribe.transcribe(src, "tiny", "en") == []      # döküm hatası klibi düşürmez
