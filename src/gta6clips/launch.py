@@ -96,7 +96,7 @@ def adjust_run_minutes(cfg: dict, minutes: float, now: datetime | None = None, m
     """GitHub Actions turu bir lansman penceresinin ortasında bitmesin: bitiş bir pencereye denk geliyorsa
     turu pencere bitene kadar uzat (izin verilen süreye sığıyorsa), sığmıyorsa pencereden `warmup_minutes`
     önce bitir ki sıradaki tur ısınmış olarak başlasın (sohbet ortalaması oturur)."""
-    if not enabled(cfg):
+    if not enabled(cfg) or minutes < 60:  # kısa (elle başlatılan deneme) turlarına dokunma
         return minutes
     now = now or now_utc()
     end = now + timedelta(minutes=minutes)

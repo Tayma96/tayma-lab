@@ -50,6 +50,7 @@ def test_run_never_ends_inside_a_window():
     assert 200 <= m <= 340                           # pencere bitene kadar uzatıldı
     far = datetime(2026, 11, 18, 12, 0, tzinfo=timezone.utc)
     assert launch.adjust_run_minutes(c, 330, far) == 330  # 17:30'da bitiyor: dokunma
+    assert launch.adjust_run_minutes(c, 15, at(-10)) == 15  # kısa deneme turu uzatılmaz
     # uzatma sığmıyorsa pencereden önce bitir
     m2 = launch.adjust_run_minutes(c, 330, at(-340))
     end2 = at(-340) + timedelta(minutes=m2)
